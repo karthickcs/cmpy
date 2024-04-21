@@ -1,0 +1,99 @@
+
+  CREATE TABLE DIFF_TABLE 
+   (	TASKID VARCHAR(1000 ), 
+	INSERTTS TIMESTAMP (6), 
+	MAINTRANID VARCHAR(1000 ), 
+	NEWTRANID VARCHAR(1000 ), 
+	SEQUENCE INTEGER, 
+	DIFFERENCE VARCHAR(4000 ), 
+	COUNTVAL INTEGER, 
+	THREADID VARCHAR(100 )
+   );
+   
+   
+    CREATE TABLE Taskmain 
+   (	TASKNAME VARCHAR(1000 ), 
+	TASKID INTEGER GENERATED ALWAYS AS IDENTITY , 
+	FILELOCATION VARCHAR(1000 ), 
+	STATUS VARCHAR(1000 ), 
+	createdby INTEGER, 
+	shared VARCHAR(1000 ), 
+	INSERTTS TIMESTAMP (6), 
+	UPDATETS TIMESTAMP (6), 
+	ROWCOUNT INTEGER
+   );
+   
+     CREATE TABLE DP_LISTEN_TABLE 
+   (	TASKNAME VARCHAR(1000), 
+	TASKID integer GENERATED ALWAYS AS IDENTITY,
+	FILELOCATION VARCHAR(1000), 
+	STATUS VARCHAR(1000), 
+	INSERTTS TIMESTAMP (6), 
+	UPDATETS TIMESTAMP (6), 
+	ROWCOUNT integer, 
+	RUNID integer
+   );
+   
+      
+   
+   CREATE TABLE USERTABLE 
+   (	ID INTEGER GENERATED ALWAYS AS IDENTITY , 
+	USERNAME VARCHAR(200 ), 
+	PASSWORD VARCHAR(200 ), 
+	ROLES VARCHAR(200 )
+   );
+   
+   
+  
+Insert into USERTABLE (USERNAME,PASSWORD,ROLES) values ('james','$2a$10$z9KGApLm9CudDi/RPnq6SOWFkirbJIg5VzKjw2bTn9tqEpDxLGPTC','admin');
+Insert into USERTABLE (USERNAME,PASSWORD,ROLES) values ('karthick','$2a$10$oyZnRHqWOd8Pt4in1PU9r.jsiZsHJSlJkIRymZE3i/XtIgYjt.3ja','admin');
+Insert into USERTABLE (USERNAME,PASSWORD,ROLES) values ('sidd','$2a$10$2aI2lWaRaSgZ3FwY2q3rEeZ4sQsa8e7tjhvp3KkacSAZvqoR4ElAq','admin');
+
+   
+   
+   psql --host 127.0.0.1 --username postgres --password --dbname postgres
+   
+   gcloud compute firewall-rules create rule8080 --allow tcp:8080 --source-tags=myvm --source-ranges=0.0.0.0/0 --description="8080"
+   
+   sudo apt-get install python3-pandas
+   
+   python3 ./dbtestpg.py
+   pip3 install xlwings
+   
+   https://cloud.google.com/python/docs/setup#linux
+   
+   python3 -m venv
+   
+   source env/bin/activate
+   
+   
+   
+   pip install pandas
+   
+   https://ubuntu.com/server/docs/databases-postgresql
+   
+   
+   
+   
+   
+   
+   
+    
+Insert into DP_LISTEN_TABLE (TASKNAME,FILELOCATION,filelocationt2,STATUS,INSERTTS,UPDATETS,ROWCOUNT,RUNID)
+values ('Myprocess1','C:\Users\cskar\Desktop\python\inputt1.csv','C:\Users\cskar\Desktop\python\inputt2.csv','CREATED',current_date,current_date,480,null);
+
+select * from DP_LISTEN_TABLE
+
+update DP_LISTEN_TABLE set STATUS='CREATED' where TASKNAME='Myprocess1'
+
+delete from diff_table
+
+delete from DP_LISTEN_TABLE
+
+alter table DP_LISTEN_TABLE add column filelocationt2 varchar(1000);
+
+select * from diff_table;
+
+/home/sasikala_becse/pyfinal
+Insert into DP_LISTEN_TABLE (TASKNAME,FILELOCATION,filelocationt2,STATUS,INSERTTS,UPDATETS,ROWCOUNT,RUNID)
+values ('Myprocess1','/home/sasikala_becse/pyfinal/inputt1.csv','/home/sasikala_becse/pyfinal/inputt2.csv','CREATED',current_date,current_date,480,null);
