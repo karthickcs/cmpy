@@ -225,7 +225,7 @@ def dproces(name,start,end, tab1, tab2, counttab1 , counttab2 , tnameConcattab1 
                 follower=tab2[kval]
                 #print(kvalmaster)
                 #print(kval)
-                difflist = list(dictdiffer.diff(master, follower))
+                difflist = json(dictdiffer.diff(master, follower))
                 difflistlength=0
                 for t in difflist:
                     difflistlength=difflistlength+ len(t[2])

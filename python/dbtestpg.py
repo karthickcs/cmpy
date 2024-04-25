@@ -30,13 +30,13 @@ def tableListener():
         results = cursor.fetchone()
         if results == None :
             return
-        upstatement ='update DP_LISTEN_TABLE set UPDATETS=Current_timestamp,status=\'INPROGRESS\'  where Taskid=\''+str(results[1]) +'\''
+        upstatement ='update DP_LISTEN_TABLE set UPDATETS=Current_timestamp,status=\'INPROGRESS\'  where Taskid=\''+str(results[1]) +'\' and runid=\''+str(results[7]) +'\''
         #print (upstatement)
         cursor.execute(upstatement)
         con.commit()
         print('success  ',results)
-        mainProgram(results[2],results[8],results[6],results[1])
-        upstatement2 ='update DP_LISTEN_TABLE set UPDATETS=Current_timestamp,status=\'DONE\'  where Taskid=\''+str(results[1]) +'\''
+        mainProgram(results[2],results[8],results[6],results[1],results[7])
+        upstatement2 ='update DP_LISTEN_TABLE set UPDATETS=Current_timestamp,status=\'DONE\'  where Taskid=\''+str(results[1]) +'\' and  runid=\''+str(results[7]) +'\''
         #print (upstatement)
         cursor.execute(upstatement2)
         con.commit()
@@ -57,7 +57,8 @@ def tableListener():
 def sleepLoop():
     while 0 == 0:
         tableListener()
-        time.sleep(2.0)
+        print("Waiting**********----->")
+        time.sleep(10.0)
 os.system('cls')
 sleepLoop()
   

@@ -10,6 +10,9 @@
 	THREADID VARCHAR(100 )
    );
    
+   alter table diff_table add diffid integer GENERATED ALWAYS AS IDENTITY ;
+   
+   alter table diff_table add runid integer ;
    
     CREATE TABLE Taskmain 
    (	TASKNAME VARCHAR(1000 ), 
@@ -22,10 +25,11 @@
 	UPDATETS TIMESTAMP (6), 
 	ROWCOUNT INTEGER
    );
-   
-     CREATE TABLE DP_LISTEN_TABLE 
+ 
+   alter table taskmain add filelocation2 varchar(1000) ;
+    CREATE TABLE DP_LISTEN_TABLE 
    (	TASKNAME VARCHAR(1000), 
-	TASKID integer GENERATED ALWAYS AS IDENTITY,
+	TASKID integer ,
 	FILELOCATION VARCHAR(1000), 
 	STATUS VARCHAR(1000), 
 	INSERTTS TIMESTAMP (6), 
@@ -34,8 +38,11 @@
 	RUNID integer
    );
    
-      
-   
+      alter table DP_LISTEN_TABLE add column filelocationt2 varchar(1000);
+   alter table dp_listen_table add dpid integer GENERATED ALWAYS AS IDENTITY ;
+
+ALTER TABLE dp_listen_table
+ALTER COLUMN taskid TYPE integer;
    CREATE TABLE USERTABLE 
    (	ID INTEGER GENERATED ALWAYS AS IDENTITY , 
 	USERNAME VARCHAR(200 ), 
@@ -61,8 +68,8 @@ Insert into USERTABLE (USERNAME,PASSWORD,ROLES) values ('sidd','$2a$10$2aI2lWaRa
    pip3 install xlwings
    
    https://cloud.google.com/python/docs/setup#linux
-   
-   python3 -m venv
+   python3 -m venv env
+ 
    
    source env/bin/activate
    
@@ -97,3 +104,8 @@ select * from diff_table;
 /home/sasikala_becse/pyfinal
 Insert into DP_LISTEN_TABLE (TASKNAME,FILELOCATION,filelocationt2,STATUS,INSERTTS,UPDATETS,ROWCOUNT,RUNID)
 values ('Myprocess1','/home/sasikala_becse/pyfinal/inputt1.csv','/home/sasikala_becse/pyfinal/inputt2.csv','CREATED',current_date,current_date,480,null);
+
+
+chrome.exe --user-data-dir="C:/Chrome dev session" --disable-web-security
+
+chrome.exe --user-data-dir="C:/Chrome dev session" --disable-web-security

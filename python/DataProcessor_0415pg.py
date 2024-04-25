@@ -24,7 +24,7 @@ from threading import Thread
 
 # In[2]:
 
-def insertProws(taskid,differeceval,maintranid,comptranid,compscore,tid,sequence):
+def insertProws(taskid,runid,differeceval,maintranid,comptranid,compscore,tid,sequence):
     cursor = None
     con = None
     
@@ -32,7 +32,7 @@ def insertProws(taskid,differeceval,maintranid,comptranid,compscore,tid,sequence
         json_mylist = str(differeceval).replace("'","\"")
         con = psycopg2.connect(database="postgres", user="postgres", password="password", host="localhost", port=5432)
         cursor = con.cursor()
-        statement="INSERT INTO  DIFF_TABLE (TASKID, INSERTTS, MAINTRANID, NEWTRANID, SEQUENCE, DIFFERENCE, COUNTVAL, THREADID) VALUES ('"+str(taskid)+"', Current_timestamp, '"+str(maintranid)+"', '"+str(comptranid)+"', '"+str(sequence)+"', '"+str(json_mylist)+"', '"+str(compscore)+"', '"+str(tid)+"')"
+        statement="INSERT INTO  DIFF_TABLE (TASKID,runid, INSERTTS, MAINTRANID, NEWTRANID, SEQUENCE, DIFFERENCE, COUNTVAL, THREADID) VALUES ('"+str(taskid)+"','"+str(runid)+"', Current_timestamp, '"+str(maintranid)+"', '"+str(comptranid)+"', '"+str(sequence)+"', '"+str(json_mylist)+"', '"+str(compscore)+"', '"+str(tid)+"')"
         cursor.execute(statement)    		
         #print (statement)
         
@@ -233,7 +233,7 @@ def writeTojson(fname, data):
      
     return 
  
-def dproces(name,start,end, tab1, tab2, counttab1 , counttab2 , tnameConcattab1 , tnameConcattab2, tnamereversemap , taskid):
+def dproces(name,start,end, tab1, tab2, counttab1 , counttab2 , tnameConcattab1 , tnameConcattab2, tnamereversemap , taskid , runid):
     try:
                
         keysListtab1 = list(tab1.keys())
@@ -271,6 +271,7 @@ def dproces(name,start,end, tab1, tab2, counttab1 , counttab2 , tnameConcattab1 
                 difflistlength=0
                 for t in difflist:
                     difflistlength=difflistlength+ len(t[2])
+                    #print(t)
                 #print(list(dictdiffer.diff(master, follower)))
                 #print(kvalmaster,kval,difflistlength)
                 #print(difflistlength)
@@ -284,13 +285,13 @@ def dproces(name,start,end, tab1, tab2, counttab1 , counttab2 , tnameConcattab1 
                     #print(follower)
             #print(kvalmaster ,matchkey, compscore)
             
-            sublist.append(list(dictdiffer.diff(master, tab2[matchkey])))
+            sublist.append( dictdiffer.diff(master, tab2[matchkey]))
             sublist.append(kvalmaster )
             sublist.append(matchkey)
             sublist.append(compscore)
             Masterlist.append(sublist)
             if compscore > 0:
-                insertProws(taskid,list(dictdiffer.diff(master, tab2[matchkey])),kvalmaster,matchkey,compscore,name ,i)
+                insertProws(taskid,runid,list(list(dictdiffer.diff(master, tab2[matchkey]))),kvalmaster,matchkey,compscore,name ,i)
             
             
             
@@ -305,7 +306,7 @@ def dproces(name,start,end, tab1, tab2, counttab1 , counttab2 , tnameConcattab1 
 #########################################################################################
 #################################################################################
 
-def mainProgram(fname1,fname2,rowcount,taskid):
+def mainProgram(fname1,fname2,rowcount,taskid,runid):
     try:
         
         start = datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
@@ -345,7 +346,7 @@ def mainProgram(fname1,fname2,rowcount,taskid):
         rval=0
         triger=10
         for i in range(1400):
-            t = threading.Thread(target=dproces,args=("T-"+str(i),rval,rval+triger, tranDataTab1, tranDataTab2, counttab1 , counttab2, tnameConcattab1 , tnameConcattab2, tnamereversemap,taskid))
+            t = threading.Thread(target=dproces,args=("T-"+str(i),rval,rval+triger, tranDataTab1, tranDataTab2, counttab1 , counttab2, tnameConcattab1 , tnameConcattab2, tnamereversemap,taskid,runid))
             t.start()
             threadrunner.append(t)
             rval=rval+triger
