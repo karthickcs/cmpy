@@ -131,7 +131,7 @@ def getfdata(text,datadict,tname, kkey, rowid):
             r = root.xpath(path, namespaces=ns)
             
             for x in r:        
-                datadict[tname+"_"+str(rowid)+"_"+path]=x.text
+                datadict[tname+":"+str(rowid)+":"+path]=x.text
     except Exception:
         x=5
      
@@ -278,14 +278,14 @@ def dproces(name,start,end, tab1, tab2, counttab1 , counttab2 , tnameConcattab1 
                 if difflistlength<compscore :
                     compscore=difflistlength
                     matchkey= kval
-                if difflistlength<= 0 :
-                    break
+                #if difflistlength<= 0 :
+                    #break
                     #print(difflistlength)
                     #print(master)
                     #print(follower)
             #print(kvalmaster ,matchkey, compscore)
             
-            sublist.append( dictdiffer.diff(master, tab2[matchkey]))
+            sublist.append(list( dictdiffer.diff(master, tab2[matchkey])))
             sublist.append(kvalmaster )
             sublist.append(matchkey)
             sublist.append(compscore)
@@ -345,7 +345,7 @@ def mainProgram(fname1,fname2,rowcount,taskid,runid):
         threadrunner =[]
         rval=0
         triger=10
-        for i in range(1400):
+        for i in range(14000):
             t = threading.Thread(target=dproces,args=("T-"+str(i),rval,rval+triger, tranDataTab1, tranDataTab2, counttab1 , counttab2, tnameConcattab1 , tnameConcattab2, tnamereversemap,taskid,runid))
             t.start()
             threadrunner.append(t)

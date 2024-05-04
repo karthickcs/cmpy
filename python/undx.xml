@@ -1,0 +1,214 @@
+<?xml version='1.0'  encoding='Cp1252' ?>
+<RESULTS>
+	<ROW>
+		<COLUMN NAME="RECID"><![CDATA[AA.AGENT.COMMISSION.DETAILS]]></COLUMN>
+		<COLUMN NAME="XMLRECORD"><![CDATA[<row id="AA.AGENT.COMMISSION.DETAILS">
+  <c1>@ID</c1>
+  <c1 m="2">AGENT.EVENT</c1>
+  <c1 m="3">COMMISSION.NATURE</c1>
+  <c1 m="4">RESERVED.8</c1>
+  <c1 m="5">RESERVED.7</c1>
+  <c1 m="6">RESERVED.6</c1>
+  <c1 m="7">RESERVED.5</c1>
+  <c1 m="8">RESERVED.4</c1>
+  <c1 m="9">RESERVED.3</c1>
+  <c1 m="10">RESERVED.2</c1>
+  <c1 m="11">RESERVED.1</c1>
+  <c1 m="12">ARRANGEMENT</c1>
+  <c1 m="13">AMOUNT</c1>
+  <c1 m="14">MARGIN.AMOUNT</c1>
+  <c1 m="15">MARGIN.RATE</c1>
+  <c1 m="16">MARGIN.PERCENT</c1>
+  <c2>D</c2>
+  <c2 m="2">D</c2>
+  <c2 m="3">D</c2>
+  <c2 m="4">D</c2>
+  <c2 m="5">D</c2>
+  <c2 m="6">D</c2>
+  <c2 m="7">D</c2>
+  <c2 m="8">D</c2>
+  <c2 m="9">D</c2>
+  <c2 m="10">D</c2>
+  <c2 m="11">D</c2>
+  <c2 m="12">D</c2>
+  <c2 m="13">D</c2>
+  <c2 m="14">D</c2>
+  <c2 m="15">D</c2>
+  <c2 m="16">D</c2>
+  <c3>0</c3>
+  <c3 m="2">6</c3>
+  <c3 m="3">7</c3>
+  <c3 m="4">8</c3>
+  <c3 m="5">9</c3>
+  <c3 m="6">10</c3>
+  <c3 m="7">11</c3>
+  <c3 m="8">12</c3>
+  <c3 m="9">13</c3>
+  <c3 m="10">14</c3>
+  <c3 m="11">15</c3>
+  <c3 m="12">1</c3>
+  <c3 m="13">2</c3>
+  <c3 m="14">3</c3>
+  <c3 m="15">4</c3>
+  <c3 m="16">5</c3>
+  <c4>IN2A</c4>
+  <c4 m="2">IN2TEXT</c4>
+  <c4 m="3">IN2A&amp;SCHEDULED_ONLINE</c4>
+  <c4 m="4">IN2&amp;&amp;NOINPUT</c4>
+  <c4 m="5">IN2&amp;&amp;NOINPUT</c4>
+  <c4 m="6">IN2&amp;&amp;NOINPUT</c4>
+  <c4 m="7">IN2&amp;&amp;NOINPUT</c4>
+  <c4 m="8">IN2&amp;&amp;NOINPUT</c4>
+  <c4 m="9">IN2&amp;&amp;NOINPUT</c4>
+  <c4 m="10">IN2&amp;&amp;NOINPUT</c4>
+  <c4 m="11">IN2&amp;&amp;NOINPUT</c4>
+  <c4 m="12">IN2TEXT</c4>
+  <c4 m="13">IN2TEXT</c4>
+  <c4 m="14">IN2A</c4>
+  <c4 m="15">IN2A</c4>
+  <c4 m="16">IN2A</c4>
+  <c6>100L</c6>
+  <c6 m="2">200L</c6>
+  <c6 m="3">35L</c6>
+  <c6 m="4">35R</c6>
+  <c6 m="5">35R</c6>
+  <c6 m="6">35R</c6>
+  <c6 m="7">35R</c6>
+  <c6 m="8">35R</c6>
+  <c6 m="9">35R</c6>
+  <c6 m="10">35R</c6>
+  <c6 m="11">35R</c6>
+  <c6 m="12">200L</c6>
+  <c6 m="13">200L</c6>
+  <c6 m="14">100L</c6>
+  <c6 m="15">100L</c6>
+  <c6 m="16">100L</c6>
+  <c7>N</c7>
+  <c7 m="2">N</c7>
+  <c7 m="3">N</c7>
+  <c7 m="4">N</c7>
+  <c7 m="5">N</c7>
+  <c7 m="6">N</c7>
+  <c7 m="7">N</c7>
+  <c7 m="8">N</c7>
+  <c7 m="9">N</c7>
+  <c7 m="10">N</c7>
+  <c7 m="11">N</c7>
+  <c7 m="12">N</c7>
+  <c7 m="13">N</c7>
+  <c7 m="14">N</c7>
+  <c7 m="15">N</c7>
+  <c7 m="16">N</c7>
+  <c10>S</c10>
+  <c10 m="2">M</c10>
+  <c10 m="3">S</c10>
+  <c10 m="4">S</c10>
+  <c10 m="5">S</c10>
+  <c10 m="6">S</c10>
+  <c10 m="7">S</c10>
+  <c10 m="8">S</c10>
+  <c10 m="9">S</c10>
+  <c10 m="10">S</c10>
+  <c10 m="11">S</c10>
+  <c10 m="12">M</c10>
+  <c10 m="13">M</c10>
+  <c10 m="14">S</c10>
+  <c10 m="15">S</c10>
+  <c10 m="16">S</c10>
+  <c11>N</c11>
+  <c11 m="2">N</c11>
+  <c11 m="3">N</c11>
+  <c11 m="4">N</c11>
+  <c11 m="5">N</c11>
+  <c11 m="6">N</c11>
+  <c11 m="7">N</c11>
+  <c11 m="8">N</c11>
+  <c11 m="9">N</c11>
+  <c11 m="10">N</c11>
+  <c11 m="11">N</c11>
+  <c11 m="12">N</c11>
+  <c11 m="13">N</c11>
+  <c11 m="14">N</c11>
+  <c11 m="15">N</c11>
+  <c11 m="16">N</c11>
+  <c12>Y</c12>
+  <c12 m="2">Y</c12>
+  <c12 m="3">Y</c12>
+  <c12 m="4">Y</c12>
+  <c12 m="5">Y</c12>
+  <c12 m="6">Y</c12>
+  <c12 m="7">Y</c12>
+  <c12 m="8">Y</c12>
+  <c12 m="9">Y</c12>
+  <c12 m="10">Y</c12>
+  <c12 m="11">Y</c12>
+  <c12 m="12">Y</c12>
+  <c12 m="13">Y</c12>
+  <c12 m="14">Y</c12>
+  <c12 m="15">Y</c12>
+  <c12 m="16">Y</c12>
+  <c13 m="16"/>
+  <c14 m="16"/>
+  <c44>1</c44>
+  <c45>1_R22m</c45>
+  <c46>2205010558</c46>
+  <c47>13_TRAIN511_OFS_MB.OFS</c47>
+  <c48>GB0010001</c48>
+  <c49>1</c49>
+</row>
+]]></COLUMN>
+	</ROW>
+	<ROW>
+		<COLUMN NAME="RECID"><![CDATA[AA.AGENT.COMMISSION.ONLINE.LIST]]></COLUMN>
+		<COLUMN NAME="XMLRECORD"><![CDATA[<row id="AA.AGENT.COMMISSION.ONLINE.LIST">
+  <c1>@ID</c1>
+  <c1 m="2">AA.AGENT.EVENT</c1>
+  <c1 m="3">AA.AGENT.ONLINE.LIST</c1>
+  <c1 m="4">COMMISSION.PROPERTY</c1>
+  <c2>D</c2>
+  <c2 m="2">D</c2>
+  <c2 m="3">D</c2>
+  <c2 m="4">D</c2>
+  <c3>0</c3>
+  <c3 m="2">1</c3>
+  <c3 m="3">0</c3>
+  <c3 m="4">2</c3>
+  <c4>IN2A</c4>
+  <c4 m="2">IN2</c4>
+  <c4 m="3">IN2A</c4>
+  <c4 m="4">IN2ANY</c4>
+  <c5 m="2"/>
+  <c6>100L</c6>
+  <c6 m="2">30R</c6>
+  <c6 m="3">100L</c6>
+  <c6 m="4">100L</c6>
+  <c7>N</c7>
+  <c7 m="2">N</c7>
+  <c7 m="3">N</c7>
+  <c7 m="4">N</c7>
+  <c8 m="4"/>
+  <c9 m="4"/>
+  <c10>S</c10>
+  <c10 m="2">M</c10>
+  <c10 m="3">S</c10>
+  <c10 m="4">M</c10>
+  <c11>N</c11>
+  <c11 m="2">N</c11>
+  <c11 m="3">N</c11>
+  <c11 m="4">N</c11>
+  <c12>Y</c12>
+  <c12 m="2">Y</c12>
+  <c12 m="3">Y</c12>
+  <c12 m="4">Y</c12>
+  <c13 m="4"/>
+  <c14 m="4"/>
+  <c44>1</c44>
+  <c45>1_202004</c45>
+  <c46>2205010558</c46>
+  <c47>19_TRAIN511_OFS_MB.OFS</c47>
+  <c48>GB0010001</c48>
+  <c49>1</c49>
+</row>
+]]></COLUMN>
+	</ROW>
+</RESULTS>
