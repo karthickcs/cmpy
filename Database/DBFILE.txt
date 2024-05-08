@@ -79,13 +79,17 @@ Insert into USERTABLE (USERNAME,PASSWORD,ROLES) values ('sidd','$2a$10$2aI2lWaRa
    
    https://ubuntu.com/server/docs/databases-postgresql
    
+   s aux | grep catalina
+   
+   sudo systemctl start tomcat
+   sudo systemctl stop tomcat
    
    
-   
-   
-   
-   
-    
+   /etc/systemd/system/
+    sudo systemctl daemon-reload
+   daemon-reload
+    sudo systemctl enable pysr.service
+	
 Insert into DP_LISTEN_TABLE (TASKNAME,FILELOCATION,filelocationt2,STATUS,INSERTTS,UPDATETS,ROWCOUNT,RUNID)
 values ('Myprocess1','C:\Users\cskar\Desktop\python\inputt1.csv','C:\Users\cskar\Desktop\python\inputt2.csv','CREATED',current_date,current_date,480,null);
 
