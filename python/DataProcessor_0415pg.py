@@ -362,4 +362,4 @@ def mainProgram(fname1,fname2,rowcount,taskid,runid):
     except Exception as error:
         print("An exception occurred: main", error)
 
-
+#mainProgram('inputt5m.csv','inputt5m2.csv',500000,111,1)

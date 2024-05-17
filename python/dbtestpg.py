@@ -15,7 +15,7 @@ import sys
 from operator import length_hint 
 import dictdiffer 
 import time
-from DataProcessor_0415pg import mainProgram
+#from DataProcessor_0415pg import mainProgram
  
 def tableListener():
     cursor = None
@@ -35,7 +35,7 @@ def tableListener():
         cursor.execute(upstatement)
         con.commit()
         print('success  ',results)
-        mainProgram(results[2],results[8],results[6],results[1],results[7])
+        #mainProgram(results[2],results[8],results[6],results[1],results[7])
         upstatement2 ='update DP_LISTEN_TABLE set UPDATETS=Current_timestamp,status=\'DONE\'  where Taskid=\''+str(results[1]) +'\' and  runid=\''+str(results[7]) +'\''
         #print (upstatement)
         cursor.execute(upstatement2)
@@ -60,6 +60,7 @@ def sleepLoop():
         print("Waiting**********----->")
         time.sleep(10.0)
 os.system('cls')
+print('hi')
 sleepLoop()
   
 

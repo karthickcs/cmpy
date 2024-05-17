@@ -15,7 +15,7 @@ import sys
 from operator import length_hint 
 import dictdiffer 
 import time
-from DataProcessor_0415 import mainProgram
+#from DataProcessor_0415 import mainProgram
 
 cx_Oracle.init_oracle_client(lib_dir=r"C:\app\cskar\product\21c\dbhomeXE\bin")
 
@@ -36,7 +36,7 @@ def tableListener():
         cursor.execute(upstatement)
         con.commit()
         print('success  ',results)
-        mainProgram(results[2],results[6],results[1])
+        #mainProgram(results[2],results[6],results[1])
         upstatement2 ='update DP_LISTEN_TABLE set UPDATETS=sysdate,status=\'DONE\'  where Taskid=\''+results[1] +'\''
         #print (upstatement)
         cursor.execute(upstatement2)
