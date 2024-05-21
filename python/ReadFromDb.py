@@ -5,6 +5,7 @@
 
 import cx_Oracle
 # importing module
+import oracledb
 import psycopg2
 import pandas as pd
 
@@ -110,9 +111,9 @@ def readcsvdata(fname,row):
                     rval=1;
                     cvalold=cval            
                 if cval in datadict:
-                    datadict[cval]=getfdata(lines[3],datadict[cval],lines[0],cval,lines[2])
+                    datadict[cval]=getfdata(lines[3],datadict[cval],lines[0],cval,rval)
                 else:
-                    datadict[cval]=getfdata(lines[3],datadicttemp,lines[0],cval,lines[2])
+                    datadict[cval]=getfdata(lines[3],datadicttemp,lines[0],cval,rval)
                 i=i+1
                 rval=rval+1
     except Exception:
@@ -423,9 +424,9 @@ def readDbData(sysdata,row):
                 rval=1;
                 cvalold=cval            
             if cval in datadict:
-                datadict[cval]=getfdata(lines[3],datadict[cval],lines[0],cval,lines[2])
+                datadict[cval]=getfdata(lines[3],datadict[cval],lines[0],cval,rval)
             else:
-                datadict[cval]=getfdata(lines[3],datadicttemp,lines[0],cval,lines[2])
+                datadict[cval]=getfdata(lines[3],datadicttemp,lines[0],cval,rval)
             i=i+1
             rval=rval+1
     except Exception:
@@ -562,14 +563,18 @@ def tableListener():
 
  
 
-cx_Oracle.init_oracle_client(lib_dir=r"C:\app\cskar\product\21c\dbhomeXE\bin")
+oracledb.init_oracle_client(lib_dir=r"C:\Users\cskar\Downloads\instantclient-basic-windows.x64-19.22.0.0.0dbru\instantclient_19_22")
 
 def conecttoOracle(user,password,jdbcurl,tname,startts,endts):
     cursor = None
     con = None
     
     try:
-        con = cx_Oracle.connect(user+"/"+password+"@"+jdbcurl)
+        con=oracledb.connect(
+        user=user,
+        password=password,
+        dsn=jdbcurl)
+        
         cursor = con.cursor()
         statement="select * from "  + tname   + " where updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI') order by scnnum,updatets,tname"
         cursor.execute(statement)    		
@@ -578,8 +583,8 @@ def conecttoOracle(user,password,jdbcurl,tname,startts,endts):
         if remaining_rows == None :
             return
         return remaining_rows
-    except cx_Oracle.DatabaseError as e:
-        print("There is a problem with Oracle+++++++", e)
+    except Exception:
+        traceback.print_exc()
     finally:
         if cursor:
             cursor.close()

@@ -113,3 +113,13 @@ values ('Myprocess1','/home/sasikala_becse/pyfinal/inputt1.csv','/home/sasikala_
 chrome.exe --user-data-dir="C:/Chrome dev session" --disable-web-security
 
 chrome.exe --user-data-dir="C:/Chrome dev session" --disable-web-security
+
+192.168.29.164
+
+http://localtunnel.me/
+https://ngrok.com/
+http://localhost.run/
+Cloudflare Tunnel
+btunnel
+Share
+Follow

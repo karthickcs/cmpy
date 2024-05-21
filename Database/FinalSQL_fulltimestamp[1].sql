@@ -140,3 +140,22 @@ DECLARE
      dbms_output.put_line(v_id);
   END;
   
+  
+  
+  
+  
+  
+  
+  insert into F_TSA_STATUS values('1',  xmltype(
+            '<?xml version="1.0" encoding="UTF-8"?>
+            <list_book>
+                <book>1</book>
+                <book>2</book>
+                <book>3</book>
+            </list_book>'
+          ));
+          
+      commit;    
+	  
+	  
+	  alter user newsys quota 100M on data;
