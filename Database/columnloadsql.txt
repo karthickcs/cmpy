@@ -1,0 +1,34 @@
+ create table cinfo(
+TNAME             VARCHAR2(500) ,
+cname          VARCHAR2(500) ,
+aname            VARCHAR2(500) 
+);
+ 
+	  
+	   
+DECLARE
+    CURSOR all_tables IS
+    SELECT
+        table_name
+    FROM
+        all_tab_columns
+    WHERE
+        table_name LIKE 'D!_%' ESCAPE '!'
+        AND data_type LIKE '%CLOB%';
+
+    v_id NUMBER := 1;
+BEGIN
+    FOR rec_cur IN all_tables LOOP
+        BEGIN 
+        EXECUTE IMMEDIATE 'insert into cinfo select '''||rec_cur.table_name||''', RECID,''C''||SUBSTR( XMLRECORD,INSTR(XMLRECORD,'''',1,1)+1,INSTR(XMLRECORD,'''',1,2)-(INSTR(XMLRECORD,'''',1,1)+1)) from '||rec_cur.table_name||'  ' ;
+       dbms_output.put_line('insert into cinfo select '''||rec_cur.table_name||''', RECID,''C''||SUBSTR( XMLRECORD,INSTR(XMLRECORD,'''',1,1)+1,INSTR(XMLRECORD,'''',1,2)-(INSTR(XMLRECORD,'''',1,1)+1)) from '||rec_cur.table_name||';'); 
+   --EXECUTE IMMEDIATE     rec_cur.table_name ;
+            v_id := v_id + 1;
+        EXCEPTION
+            WHEN OTHERS THEN
+                dbms_output.put_line(sqlcode);
+        END;
+    END LOOP;
+
+    dbms_output.put_line(v_id);
+END;
