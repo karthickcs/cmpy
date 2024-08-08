@@ -1,4 +1,28 @@
-
+  CREATE TABLE Diff_Table_struct 
+   (
+   
+    difftabid integer GENERATED ALWAYS AS IDENTITY ,
+    
+	TASKID VARCHAR(100 ) ,
+	 
+	RUNID VARCHAR(100 ) ,
+    
+    TNAME VARCHAR(100 ),
+    
+    tstructoldsys VARCHAR(32000 ),
+	
+	tstructnewsys VARCHAR(32000 ),
+	difference VARCHAR(32000 )
+    
+   );
+   
+   alter table Diff_Table_struct modify tstructoldsys varchar(20000);
+   alter table Diff_Table_struct modify tstructnewsys varchar(20000);
+   alter table Diff_Table_struct modify difference varchar(20000);
+ 
+    alter table dp_listen_table add generate_metadata varchar(100);
+  select 'drop trigger ' || trigger_name || ';' stmt from user_triggers;
+  
   CREATE TABLE DIFF_TABLE 
    (	TASKID VARCHAR(1000 ), 
 	INSERTTS TIMESTAMP (6), 
@@ -25,8 +49,48 @@
 	UPDATETS TIMESTAMP (6), 
 	ROWCOUNT INTEGER
    );
- 
+ alter table Taskmain add Jdbcurlsys1 varchar(2000);
+alter table Taskmain add Usernamesys1 varchar(2000);
+alter table Taskmain add Passwordsys1 varchar(2000);
+alter table Taskmain add Dbtypesys1 varchar(2000);
+alter table Taskmain add Tablenamesys1 varchar(2000);
+alter table Taskmain add Starttssys1 varchar(2000);
+alter table Taskmain add Endtssys1 varchar(2000);
+alter table Taskmain add Jdbcurlsys2 varchar(2000);
+alter table Taskmain add Usernamesys2 varchar(2000);
+alter table Taskmain add Passwordsys2 varchar(2000);
+alter table Taskmain add Dbtypesys2 varchar(2000);
+alter table Taskmain add Tablenamesys2 varchar(2000);
+alter table Taskmain add Starttssys2 varchar(2000);
+alter table Taskmain add Endtssys2 varchar(2000);
+alter table Taskmain add Sys1type varchar(2000);
+alter table Taskmain add Sys2type varchar(2000);
+
+alter table Taskmain add TablenameClobsys1 varchar(2000);
+alter table Taskmain add StarttsClobsys1 varchar(2000);
+alter table Taskmain add EndtsClobsys1 varchar(2000);
+alter table Taskmain add TablenameClobsys2 varchar(2000);
+alter table Taskmain add StarttsClobsys2 varchar(2000);
+alter table Taskmain add EndtsClobsys2 varchar(2000);
+
+
+
+alter table Taskmain add TablenameOnlinesys1 varchar(2000);
+alter table Taskmain add StarttsOnlinesys1 varchar(2000);
+alter table Taskmain add EndtsOnlinesys1 varchar(2000);
+alter table Taskmain add TablenameOnlinesys2 varchar(2000);
+alter table Taskmain add StarttsOnlinesys2 varchar(2000);
+alter table Taskmain add EndtsOnlinesys2 varchar(2000);
    alter table taskmain add filelocation2 varchar(1000) ;
+
+
+alter table Taskmain add Tablenamesys1 varchar(2000);
+alter table Taskmain add Starttssys1 varchar(2000);
+alter table Taskmain add Endtssys1 varchar(2000);
+alter table Taskmain add Tablenamesys2 varchar(2000);
+alter table Taskmain add Starttssys2 varchar(2000);
+alter table Taskmain add Endtssys2 varchar(2000);
+
     CREATE TABLE DP_LISTEN_TABLE 
    (	TASKNAME VARCHAR(1000), 
 	TASKID integer ,
@@ -38,9 +102,51 @@
 	RUNID integer
    );
    
+   
+ alter table dp_listen_table add rowsprocessed integer ;
+
+alter table dp_listen_table add dataloadtime integer ;
+ 
+  alter table dp_listen_table add batchtime integer ;
+  
+   alter table dp_listen_table add comparetime integer ;
+   
+    alter table dp_listen_table add reportgentime integer ;
+   alter table DP_LISTEN_TABLE add column ROWCOUNTsys2 integer;
       alter table DP_LISTEN_TABLE add column filelocationt2 varchar(1000);
    alter table dp_listen_table add dpid integer GENERATED ALWAYS AS IDENTITY ;
+alter table dp_listen_table add Jdbcurlsys1 varchar(2000);
+alter table dp_listen_table add Usernamesys1 varchar(2000);
+alter table dp_listen_table add Passwordsys1 varchar(2000);
+alter table dp_listen_table add Dbtypesys1 varchar(2000);
+alter table dp_listen_table add Tablenamesys1 varchar(2000);
+alter table dp_listen_table add Starttssys1 varchar(2000);
+alter table dp_listen_table add Endtssys1 varchar(2000);
+alter table dp_listen_table add Jdbcurlsys2 varchar(2000);
+alter table dp_listen_table add Usernamesys2 varchar(2000);
+alter table dp_listen_table add Passwordsys2 varchar(2000);
+alter table dp_listen_table add Dbtypesys2 varchar(2000);
+alter table dp_listen_table add Tablenamesys2 varchar(2000);
+alter table dp_listen_table add Starttssys2 varchar(2000);
+alter table dp_listen_table add Endtssys2 varchar(2000);
+alter table dp_listen_table add Sys1type varchar(2000);
+alter table dp_listen_table add Sys2type varchar(2000);
 
+alter table dp_listen_table add TablenameClobsys1 varchar(2000);
+alter table dp_listen_table add StarttsClobsys1 varchar(2000);
+alter table dp_listen_table add EndtsClobsys1 varchar(2000);
+alter table dp_listen_table add TablenameClobsys2 varchar(2000);
+alter table dp_listen_table add StarttsClobsys2 varchar(2000);
+alter table dp_listen_table add EndtsClobsys2 varchar(2000);
+
+
+
+alter table dp_listen_table add TablenameOnlinesys1 varchar(2000);
+alter table dp_listen_table add StarttsOnlinesys1 varchar(2000);
+alter table dp_listen_table add EndtsOnlinesys1 varchar(2000);
+alter table dp_listen_table add TablenameOnlinesys2 varchar(2000);
+alter table dp_listen_table add StarttsOnlinesys2 varchar(2000);
+alter table dp_listen_table add EndtsOnlinesys2 varchar(2000);
 ALTER TABLE dp_listen_table
 ALTER COLUMN taskid TYPE integer;
    CREATE TABLE USERTABLE 
@@ -84,7 +190,7 @@ Insert into USERTABLE (USERNAME,PASSWORD,ROLES) values ('sidd','$2a$10$2aI2lWaRa
    sudo systemctl start tomcat
    sudo systemctl stop tomcat
    
-   
+   34.131.121.167
    /etc/systemd/system/
     sudo systemctl daemon-reload
    daemon-reload
@@ -114,12 +220,32 @@ chrome.exe --user-data-dir="C:/Chrome dev session" --disable-web-security
 
 chrome.exe --user-data-dir="C:/Chrome dev session" --disable-web-security
 
-192.168.29.164
 
-http://localtunnel.me/
-https://ngrok.com/
-http://localhost.run/
-Cloudflare Tunnel
-btunnel
-Share
-Follow
+select scnnum from log_table order by scnnum,updatets,tname FETCH FIRST 100 ROWS ONLY
+
+
+UPDATE log_table SET information =
+   UPDATEXML(information,
+   '/row/c1/text()',4) where scnnum in (select scnnum from log_table order by scnnum,updatets,tname FETCH FIRST 100 ROWS ONLY)
+
+
+
+
+UPDATE f_standard_selection SET xmlrecord =
+   UPDATEXML(xmlrecord,
+   '/row/c1[@m="3"]/text()','colchanged') where   rownum< 25
+
+936795
+fuser 8080/tcp
+kill 936795
+
+
+https://python-oracledb.readthedocs.io/en/latest/user_guide/installation.html#instreq
+
+Status : Failure -Test failed: FATAL: no pg_hba.conf entry for host "49.37.219.9", user "postgres", database "postgres", SSL encryption
+
+
+Status : Failure -Test failed: Connection to 34.131.121.167:5432 refused. Check that the hostname and port are correct and that the postmaster is accepting TCP/IP connections.
+
+
+sudo service postgresql restart
