@@ -193,22 +193,22 @@ def conecttoOracleGenerateMeta(user,password,jdbcurl,tname ):
         cursor = con.cursor() 
         statement="select recid,xmltype.getclobval(xmlrecord)  from  "  + tname   + "     order by recid "
         cursor.execute(statement)    		
-        remaining_rows = cursor.fetchone()
+        remaining_rows = cursor.fetchall()
          
         if remaining_rows == None :
             logger.debug('No rows')
             return
-        while (remaining_rows):
+        for rec in remaining_rows:
             sys =[]
             try:
                
-                    sys.append(remaining_rows[0])
-                    sys.append( remaining_rows[1].read())
+                    sys.append(rec[0])
+                    sys.append( rec[1].read())
                                   
-                    Mainsys[remaining_rows[0]]=sys
+                    Mainsys[rec[0]]=sys
             except Exception:
                 logger.debug("error ") 
-            remaining_rows = cursor.fetchone()
+            # remaining_rows = cursor.fetchone()
          
         return Mainsys
     except Exception:
@@ -218,7 +218,9 @@ def conecttoOracleGenerateMeta(user,password,jdbcurl,tname ):
             cursor.close()
         if con:
             con.close() 
- 
+            
+            
+# moved 
 def insertProwsDifftabstruct(cursor,taskid,runid,tname,oldjson,newjson,difference):
      
     
@@ -238,7 +240,7 @@ def insertProwsDifftabstruct(cursor,taskid,runid,tname,oldjson,newjson,differenc
         
             
             
-
+# moved
 def updatedplistenstatus(taskid,runid,loadtime,batchtime,comaparetime,reporttime):
     cursor = None
     con = None
@@ -262,6 +264,7 @@ def updatedplistenstatus(taskid,runid,loadtime,batchtime,comaparetime,reporttime
             con.close()          
             
           
+# moved
 
 def updaterowproceesed(cursor,taskid,runid ):
      
@@ -277,7 +280,7 @@ def updaterowproceesed(cursor,taskid,runid ):
         print("There is a problem with Oracle+++++++",str( e))
                         
             
-            
+#  moved 
 def deleteoldRec(taskid ):
     cursor = None
     con = None
@@ -360,7 +363,7 @@ def conecttoOracle(user,password,jdbcurl,tname,startts,endts,oldarr):
         dsn=jdbcurl)
         Mainsys=[]
         cursor = con.cursor()
-        statement="SELECT ROWIDVAL,MIN(UPDATETS) MIN ,MAX(UPDATETS) FROM "  + tname   + " WHERE TNAME ='UPDATING on F_BATCH' AND xmltype.getclobval(information) NOT  LIKE '%<c3>0</c3>%' GROUP BY ROWIDVAL"
+        statement="SELECT ROWIDVAL,MIN(UPDATETS) MIN ,MAX(UPDATETS) FROM "  + tname   + " WHERE TNAME ='UPDATING on F_BATCH' and updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI')  AND xmltype.getclobval(information) NOT  LIKE '%<c3>0</c3>%' GROUP BY ROWIDVAL"
         cursor.execute(statement)    		
         #results = cursor.fetchone()
          
@@ -393,12 +396,20 @@ def conecttoOracle(user,password,jdbcurl,tname,startts,endts,oldarr):
             con.close()
 
 
-def conecttoOracleOnline(user,password,jdbcurl,tname,startts,endts):
+def conecttoOracleOnline(user,password,jdbcurl,tname,startts,endts,tablewildcard):
     cursor = None
     con = None
     Mainsys = []
     try:
-        statement="select TNAME,ROWIDVAL,SCNNUM,xmltype.getclobval(information),UPDATETS from "  + tname   + " where TNAME not like '%_BATCH%'  and updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI') order by scnnum,updatets,tname"
+        ignore =  ""
+        tablewildcardArray = tablewildcard.split("\r\n")
+        for tabwild in tablewildcardArray:
+            if tabwild.strip().upper() != "":
+                ignore = ignore + "  and tname not like '%"+ tabwild.replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+            
+       
+        orderby= " order by scnnum,updatets,tname"
+        statement="select TNAME,ROWIDVAL,SCNNUM,xmltype.getclobval(information),UPDATETS from "  + tname   + " where TNAME not like '%_BATCH%'  and updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI') " + ignore + "  " + orderby
         logger.debug(statement)
         con=oracledb.connect(
         user=user,
@@ -438,12 +449,19 @@ def conecttoOracleOnline(user,password,jdbcurl,tname,startts,endts):
             con.close()
             
             
-def conecttoOracleClob(user,password,jdbcurl,tname,startts,endts):
+def conecttoOracleClob(user,password,jdbcurl,tname,startts,endts,tablewildcard):
     cursor = None
     con = None
     Mainsys = []
     try:
-        statement="select TNAME,ROWIDVAL,SCNNUM,information,UPDATETS from "  + tname   + " where updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI') order by scnnum,updatets,tname"
+        ignore =  ""
+        tablewildcardArray = tablewildcard.split("\r\n")
+        for tabwild in tablewildcardArray:
+            if tabwild.strip().upper() != "":
+                ignore = ignore + "  and tname not like '%"+ tabwild.replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+            
+        orderby="order by scnnum,updatets,tname"
+        statement="select TNAME,ROWIDVAL,SCNNUM,information,UPDATETS from "  + tname   + " where updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI')  "  + ignore + "  " +orderby
         logger.debug(statement)
         con=oracledb.connect(
         user=user,
@@ -483,12 +501,20 @@ def conecttoOracleClob(user,password,jdbcurl,tname,startts,endts):
             con.close()            
 
 
-def conecttoOraclefbatch(user,password,jdbcurl,tname,startts,endts):
+def conecttoOraclefbatch(user,password,jdbcurl,tname,startts,endts,tablewildcard):
     cursor = None
     con = None
     Mainsys = []
     try:
-        statement="select TNAME,ROWIDVAL,SCNNUM,xmltype.getclobval(information),UPDATETS from "  + tname   + " where updatets > TO_TIMESTAMP('"+str(startts) + "','YYYY-mm-dd HH24:MI:SS.FF6')  and updatets < TO_TIMESTAMP('"+str(endts) + "','YYYY-mm-dd HH24:MI:SS.FF6') order by scnnum,updatets,tname"
+        
+        ignore =  ""
+        tablewildcardArray = tablewildcard.split("\r\n")
+        for tabwild in tablewildcardArray:
+            if tabwild.strip().upper() != "":
+                ignore = ignore + "  and tname not like '%"+ tabwild.replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+            
+        orderby="order by scnnum,updatets,tname"
+        statement="select TNAME,ROWIDVAL,SCNNUM,xmltype.getclobval(information),UPDATETS from "  + tname   + " where updatets > TO_TIMESTAMP('"+str(startts) + "','YYYY-mm-dd HH24:MI:SS.FF6')  and updatets < TO_TIMESTAMP('"+str(endts) + "','YYYY-mm-dd HH24:MI:SS.FF6') " + ignore + "  " +orderby
         logger.debug(statement)
         con=oracledb.connect(
         user=user,
@@ -500,23 +526,23 @@ def conecttoOraclefbatch(user,password,jdbcurl,tname,startts,endts):
         cursor.execute(statement) 
           		
         #results = cursor.fetchone()
-        remaining_rows = cursor.fetchone()
+        remaining_rows = cursor.fetchall()
          
         if remaining_rows == None :
             logger.debug('No rows')
             return
-        while (remaining_rows):
+        for rec in remaining_rows:
             sys =[]
             try:
-                sys.append(remaining_rows[0])
-                sys.append(remaining_rows[1])
-                sys.append(remaining_rows[2])            
-                sys.append ( remaining_rows[3].read())
-                sys.append(remaining_rows[4])
+                sys.append(rec[0])
+                sys.append(rec[1])
+                sys.append(rec[2])            
+                sys.append ( rec[3].read())
+                sys.append(rec[4])
                 Mainsys.append(sys)
             except Exception:
                 logger.debug("error clob") 
-            remaining_rows = cursor.fetchone()
+            # remaining_rows = cursor.fetchone()
         logger.debug('connected----->'+str(len(Mainsys))) 
         return Mainsys
     except Exception:
@@ -636,8 +662,8 @@ def tableListener():
             return
         
         if dd['starttsonlinesys1'] != None and dd['starttsonlinesys1'] !='' and len(dd['starttsonlinesys1']) >0 :            
-            sys1=conecttoOracleOnline(dd['usernamesys1'],dd['passwordsys1'],dd['jdbcurlsys1'],dd['tablenamesys1'],dd['starttsonlinesys1'],dd['endtsonlinesys1'])
-            sys2=conecttoOracleOnline(dd['usernamesys2'],dd['passwordsys2'],dd['jdbcurlsys2'],dd['tablenamesys2'],dd['starttsonlinesys2'],dd['endtsonlinesys2'])
+            sys1=conecttoOracleOnline(dd['usernamesys1'],dd['passwordsys1'],dd['jdbcurlsys1'],dd['tablenamesys1'],dd['starttsonlinesys1'],dd['endtsonlinesys1'],dd['tablewildcard'])
+            sys2=conecttoOracleOnline(dd['usernamesys2'],dd['passwordsys2'],dd['jdbcurlsys2'],dd['tablenamesys2'],dd['starttsonlinesys2'],dd['endtsonlinesys2'],dd['tablewildcard'])
             done = time.time()
             loadtime =int(( done - start))+1
             updatedplistenstatus(dd['taskid'],dd['runid'] ,loadtime,batchtime,comaparetime,reporttime)
@@ -655,12 +681,13 @@ def tableListener():
         
         if dd['starttsonlinesys1'] != None and dd['starttsonlinesys1'] !='' and len(dd['starttsonlinesys1']) >0 :              
                 
-            sys1=conecttoOracleClob(dd['usernamesys1'],dd['passwordsys1'],dd['jdbcurlsys1'],dd['tablenamesys1']+"_CLOB",dd['starttsonlinesys1'],dd['endtsonlinesys1'])
-            sys2=conecttoOracleClob(dd['usernamesys2'],dd['passwordsys2'],dd['jdbcurlsys2'],dd['tablenamesys2']+"_CLOB",dd['starttsonlinesys2'],dd['endtsonlinesys2'])
+            sys1=conecttoOracleClob(dd['usernamesys1'],dd['passwordsys1'],dd['jdbcurlsys1'],dd['tablenamesys1']+"_CLOB",dd['starttsonlinesys1'],dd['endtsonlinesys1'],dd['tablewildcard'])
+            sys2=conecttoOracleClob(dd['usernamesys2'],dd['passwordsys2'],dd['jdbcurlsys2'],dd['tablenamesys2']+"_CLOB",dd['starttsonlinesys2'],dd['endtsonlinesys2'],dd['tablewildcard'])
             dprocesmultiClob('Clobprocess',sys1,sys2,dd['taskid'],dd['runid'])
             clearfile("cont.txt","")  
             # mainProgramDbApproach(sys1,sys2,results,dd['rowcount'],dd['taskid'],dd['runid'],"false")
-        if dd['sys1type']  == "DB" :
+        
+        if dd['starttssys1'] != None and dd['starttssys1'] !='' and len(dd['starttssys1']) >0 :              
             countsys1=conecttoOraclecount(dd['usernamesys1'],dd['passwordsys1'],dd['jdbcurlsys1'],dd['tablenamesys1'],dd['starttssys1'],dd['endtssys1'],[])
             countsys2=conecttoOraclecount(dd['usernamesys2'],dd['passwordsys2'],dd['jdbcurlsys2'],dd['tablenamesys2'],dd['starttssys2'],dd['endtssys2'],[])
             upstatement ="update DP_LISTEN_TABLE set ROWCOUNT='" +str(countsys1)  + "',ROWCOUNTSYS2='" + str(countsys2)  + "', UPDATETS=Current_timestamp,status=\'INPROGRESS\'  where Taskid=\'"+str(dd['taskid']) +"\' and runid=\'"+str(dd['runid']) +"\'"              
@@ -672,7 +699,7 @@ def tableListener():
             loadtime =int(( done - start))+1
             start = time.time()
             updatedplistenstatus(dd['taskid'],dd['runid'] ,loadtime,batchtime,comaparetime,reporttime)
-            mainProgramDbApproach(sys1,sys2,results,dd['rowcount'],dd['taskid'],dd['runid'],"false")
+            mainProgramDbApproach(sys1,sys2,results,dd['rowcount'],dd['taskid'],dd['runid'],"false",dd['tablewildcard'])
             done = time.time()
             comaparetime =int(( done - start))+1
             reporttime=1
@@ -960,6 +987,7 @@ def reaxmldataforclob(scndetails,astring,batch):
     logger.debug(totalerr)
     return datadict
 def dprocesmultiClob(tid,scndetssys1,scndetssys2,taskid,runid):
+    con = None
     try:
         #print ("start Inner Thread of ---->"+tid) 
         # overrite("cont.txt",str(taskid)+","+str(runid))
@@ -975,11 +1003,11 @@ def dprocesmultiClob(tid,scndetssys1,scndetssys2,taskid,runid):
         inrval=0
         inrr=int(len(tab1)/intriger)
         inthreadrunner=[]
-         
+        con = psycopg2.connect(database="postgres", user="postgres", password="password", host="localhost", port=5432) 
         inrr+=1
         for i in range(inrr):
             t = threading.Thread(target=innerthread,args=(tid+str(i),inrval,inrval+intriger, tab1, tab2, tnameConcattab1 , tnameConcattab2,tnamereversemap,taskid,runid))
-           
+                                                              
             t.start()
             logger.error("start Batch  Thread of "+tid +"-->"+str(i)) 
             inthreadrunner.append(t)
@@ -994,7 +1022,8 @@ def dprocesmultiClob(tid,scndetssys1,scndetssys2,taskid,runid):
        
     except Exception:
         logger.error("exception ",exc_info=1)
-
+    if con:
+        con.close()   
 
 def ptimead(tid,ty):
     logger.debug(tid)
@@ -1050,7 +1079,7 @@ Masterlist=[]
 threadrunner =[]
 df = pd.DataFrame(Masterlist)
 
-def mainProgramDbApproach(sys1,sys2,results,rowcount,taskid,runid,cont):
+def mainProgramDbApproach(sys1,sys2,results,rowcount,taskid,runid,cont,tablewildcard):
     
     if cont == "false" :
         overrite("cont.txt",str(taskid)+","+str(runid))
@@ -1065,7 +1094,7 @@ def mainProgramDbApproach(sys1,sys2,results,rowcount,taskid,runid,cont):
             #     continue     
             mintime=sys1[i][1]
             maxtime=sys1[i][2]
-            scndetssys1=conecttoOraclefbatch(results[11],results[12],results[10],results[14],mintime,maxtime)
+            scndetssys1=conecttoOraclefbatch(results[11],results[12],results[10],results[14],mintime,maxtime,tablewildcard)
              
             #scndetssys1 = sys1df.loc[(sys1df['UPDATETS']> datetime.strptime(mintime, '%Y-%m-%d %H:%M:%S.%f')) & (sys1df['UPDATETS']< datetime.strptime(maxtime, '%Y-%m-%d %H:%M:%S.%f')) & (sys2df['TNAME']!='UPDATING on F_LOCKING')] 
             for row in sys2 :
@@ -1073,7 +1102,7 @@ def mainProgramDbApproach(sys1,sys2,results,rowcount,taskid,runid,cont):
                     batchsys2=row[0]
                     mintimesys2=row[1]
                     maxtimesys2= row[2]
-            scndetssys2=conecttoOraclefbatch(results[18],results[19],results[17],results[21],mintimesys2,maxtimesys2)
+            scndetssys2=conecttoOraclefbatch(results[18],results[19],results[17],results[21],mintimesys2,maxtimesys2,tablewildcard)
             if  scndetssys1 == None :
                 logger.debug("Batch with zero rows ::"+batch)
                 continue
