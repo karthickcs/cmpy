@@ -148,3 +148,33 @@ DECLARE
    
 	  
 	   
+
+DECLARE
+    CURSOR all_tables IS
+    SELECT ROWIDVAL,MIN(UPDATETS) MINV ,MAX(UPDATETS) MAXV FROM  LOG_TABLE_800 WHERE TNAME ='UPDATING on F_BATCH' AND xmltype.getclobval(information) NOT  LIKE '%<c3>0</c3>%'
+      GROUP BY ROWIDVAL order by ROWIDVAL ;
+
+    v_TOTAL NUMBER :=0;
+    v_id NUMBER := 1;
+    v_counter NUMBER :=0;
+BEGIN
+    FOR rec_cur IN all_tables LOOP
+        BEGIN
+            --dbms_output.put_line(rec_cur.MAXV ||'::'|| rec_cur.MINV);
+            select count(*) into v_counter from LOG_TABLE_800 where TNAME not like '%_BATCH%'  and updatets > rec_cur.MINV
+            and updatets < rec_cur.MAXV   and tname not like '%BATCH%'   
+            ESCAPE '\'   and tname not like '%TAFJ%'   ESCAPE '\'   and tname not like '%PROTOCOL%'   ESCAPE '\'   and tname not like '%JOB\_TIMES%'
+            ESCAPE '\'   and tname not like '%LOCKING%'   ESCAPE '\'   and tname not like '%SESSION%'   ESCAPE '\'  
+            and tname not like '%EB\_EOD\_ERROR%'   ESCAPE '\'    order by scnnum,updatets,tname ;
+            v_id := v_id + 1;
+            dbms_output.put_line(rec_cur.ROWIDVAL||  ',' || v_counter);
+             v_TOTAL:= v_TOTAL + v_counter;
+        EXCEPTION
+            WHEN OTHERS THEN
+                dbms_output.put_line(sqlerrm);
+             EXIT;       
+        END;
+    END LOOP;
+    dbms_output.put_line(v_TOTAL);
+    dbms_output.put_line(v_id);
+END;
