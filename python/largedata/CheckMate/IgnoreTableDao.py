@@ -28,12 +28,12 @@ class IgnoreTableDao(CommonDao.CommonDao):
 
                    
                 except Exception:
-                    this.logger.debug("error ") 
+                    this.logger_debug.debug("error ") 
                 # remaining_rows = cursor.fetchone()
 
             return sys
         except psycopg2.DatabaseError as e:
-            print("There is a problem with postgress+++++++", str(e))
+            this.logger_debug.debug("There is a problem with postgress+++++++", str(e))
         finally:
             this.closeConnection()   
  

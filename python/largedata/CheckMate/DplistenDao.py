@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 import psycopg2
 import CommonDao
 
@@ -27,18 +28,32 @@ class DplistenDao(CommonDao.CommonDao):
             )
             this.cursor.execute(statement)
             this.connection.commit()
-            this.logger.debug("Status updated Succesful")
+            this.logger_info.info("Status updated Succesful")
 
         except psycopg2.DatabaseError as e:
-            print("There is a problem with postgress+++++++", str(e))
+            this.logger_debug.debug("There is a problem with postgress+++++++", str(e))
         finally:
             this.closeConnection()
 
-    def updateStatus(this, taskid, runid, status):
+
+
+
+    def updateStatusdone(this, taskid, runid, status):
 
         try:
             this.connect()
-            statement = (
+            n=len(sys.argv)
+            if n ==3 :
+              arg2=sys.argv[2]
+              statement = (
+                "update DP_LISTEN_TABLE set UPDATETS=Current_timestamp, tcounter=COALESCE(tcounter,0)-1   where  taskid='"
+                + str(taskid)
+                + "' and  runid='"
+                + str(runid)
+                + "' "
+            )
+            else: 
+                statement = (
                 "update DP_LISTEN_TABLE set UPDATETS=Current_timestamp,status='"
                 + str(status)
                 + "'  where  taskid='"
@@ -47,30 +62,93 @@ class DplistenDao(CommonDao.CommonDao):
                 + str(runid)
                 + "' "
             )
+            print(statement)     
             this.cursor.execute(statement)
+            if n ==3 :
+               
+                statement = (
+                    "update DP_LISTEN_TABLE set   status='"
+                    + str(status)
+                    + "'  where  taskid='"
+                    + str(taskid)
+                    + "' and  runid='"
+                    + str(runid)
+                    + "' and  tcounter = '0'"
+                )
+                print(statement) 
+                this.cursor.execute(statement)
+            
             this.connection.commit()
-            this.logger.debug("Status updated Succesful")
+            this.logger_info.info("Status updated Succesful")
 
         except psycopg2.DatabaseError as e:
-            print("There is a problem with postgress+++++++", str(e))
+            this.logger_debug.debug("There is a problem with postgress+++++++", str(e))
+        finally:
+            this.closeConnection()
+            
+    def updateStatus(this, taskid, runid, status):
+
+        try:
+            this.connect()
+            n=len(sys.argv)
+            if n ==3 :
+              arg2=sys.argv[2]
+              statement = (
+                "update DP_LISTEN_TABLE set UPDATETS=Current_timestamp, tcounter=COALESCE(tcounter,0)+1   where  taskid='"
+                + str(taskid)
+                + "' and  runid='"
+                + str(runid)
+                + "' "
+            )
+            else: 
+                statement = (
+                "update DP_LISTEN_TABLE set UPDATETS=Current_timestamp,status='"
+                + str(status)
+                + "'  where  taskid='"
+                + str(taskid)
+                + "' and  runid='"
+                + str(runid)
+                + "' "
+            )
+            print(statement)   
+            this.cursor.execute(statement)
+            if n ==3 :
+               
+                statement = (
+                    "update DP_LISTEN_TABLE set   status='"
+                    + str(status)
+                    + "'  where  taskid='"
+                    + str(taskid)
+                    + "' and  runid='"
+                    + str(runid)
+                    + "' and  tcounter = '"+arg2 +"'"
+                )
+                print(statement) 
+                this.cursor.execute(statement)
+            
+            this.connection.commit()
+            this.logger_info.info("Status updated Succesful")
+
+        except psycopg2.DatabaseError as e:
+            this.logger_debug.debug("There is a problem with postgress+++++++", str(e))
         finally:
             this.closeConnection()
 
-    def updaterowproceesed(this, taskid, runid):
+    def updaterowproceesed(this, taskid, runid, count):
 
         try:
 
             statement = (
-                " update dp_listen_table set rowsprocessed=rowsprocessed+1     where  taskid='"
+                " update dp_listen_table set rowsprocessed=rowsprocessed+ "+str(count)+ "  where  taskid='"
                 + str(taskid)
                 + "' and  runid='"
                 + str(runid)
                 + "' "
             )
             this.prrowcursor.execute(statement)
-
+           
         except psycopg2.DatabaseError as e:
-            print("There is a problem with postgress+++++++", str(e))
+            this.logger_debug.debug("There is a problem with postgress+++++++", str(e))
 
     def updateProcessTime(
         this, taskid, runid, loadtime, batchtime, comaparetime, reporttime
@@ -97,9 +175,9 @@ class DplistenDao(CommonDao.CommonDao):
             this.cursor.execute(statement)
 
             this.connection.commit()
-            this.logger.debug("Status/time updated Succesful")
+            this.logger_info.info("Status/time updated Succesful")
         except psycopg2.DatabaseError as e:
-            this.logger.debug("There is a problem with Postgress+++++++", str(e))
+            this.logger_debug.debug("There is a problem with Postgress+++++++", str(e))
         finally:
             this.closeConnection()
             
@@ -112,7 +190,7 @@ class DplistenDao(CommonDao.CommonDao):
             results = this.cursor.fetchone()
             return results
         except psycopg2.DatabaseError as e:
-            print("There is a problem with postgress+++++++", str(e))
+            this.logger_debug.debug("There is a problem with postgress+++++++", str(e))
         finally:
             this.closeConnection()
  
@@ -121,13 +199,13 @@ class DplistenDao(CommonDao.CommonDao):
         try:
             this.connect()
             statement = (
-                "select * from DP_LISTEN_TABLE where status='CREATED'  and (select count(status) from DP_LISTEN_TABLE where status='INPROGRESS' ) = 0 order by insertts"
+                "select * from DP_LISTEN_TABLE where status='CREATED'  and (select count(status) from DP_LISTEN_TABLE where status='INPROGRESS"+sys.argv[1]+"' ) = 0 order by insertts"
             )
             this.cursor.execute(statement)
             results = this.cursor.fetchone()
             return results
         except psycopg2.DatabaseError as e:
-            print("There is a problem with postgress+++++++", str(e))
+            this.logger_debug.debug("There is a problem with postgress+++++++", str(e))
         finally:
             this.closeConnection()   
 # logging.basicConfig(
@@ -137,7 +215,7 @@ class DplistenDao(CommonDao.CommonDao):
 # )
 # logger = logging.getLogger("ReadFromDb")
 # logger.setLevel(logging.DEBUG)
-# logger.debug(os.path.abspath(os.getcwd()))
+# logger_debug.debug(os.path.abspath(os.getcwd()))
 # dplistenDaoObj = DplistenDao(
 #     logger, "postgres", "postgres", "password", "localhost", 5432
 # )

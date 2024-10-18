@@ -20,25 +20,8 @@ class DiffTableDao(CommonDao.CommonDao):
             
             
         except psycopg2.DatabaseError as e:
-            this.logger.debug("There is a problem with Postgress+++++++",str( e))
+            this.logger_debug.debug("There is a problem with Postgress+++++++",str( e))
         
             
             
- 
-# logging.basicConfig(
-#     level=logging.DEBUG,
-#     format="[%(asctime)s:%(lineno)s - %(funcName)20s() ] %(message)s ",
-#     handlers=[logging.FileHandler("logfile.log"), logging.StreamHandler()],
-# )
-# logger = logging.getLogger("ReadFromDb")
-# logger.setLevel(logging.DEBUG)
-# logger.debug(os.path.abspath(os.getcwd()))
-# DiffTableObj = DiffTableDao(
-#     logger, "postgres", "postgres", "password", "localhost", 5432
-# )
- 
-
-# DiffTableObj.connect()
-# DiffTableObj.insertRecords(2,25,'test','2222','333333','33','3','1')
-# DiffTableObj.closeConnection()
-
+  

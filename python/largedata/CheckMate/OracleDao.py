@@ -10,158 +10,199 @@ import CommonOraDao
 class OracleDao(CommonOraDao.CommonOraDao):
 
     def GetMetaData(this, tname):
-
+        cursor = None
+        con = None
         Mainsys = {}
         try:
-            this.connect()
+            con=oracledb.connect(
+            user=this.username,
+            password=this.password,
+            dsn=this.jdbcurl)
+     
+            cursor = con.cursor()             
             statement = (
                 "select recid,xmltype.getclobval(xmlrecord)  from  "
                 + tname
                 + "     order by recid "
             )
-            this.cursor.execute(statement)
-            remaining_rows = this.cursor.fetchone()
+            cursor.execute(statement)
+            remaining_rows = cursor.fetchall()
 
             if remaining_rows == None:
-                this.logger.debug("No rows")
+                this.logger_info.info("No rows")
                 return
-            while (remaining_rows):
+            for rec in remaining_rows:
                 sys = []
                 try:
 
-                    sys.append(remaining_rows[0])
-                    sys.append(remaining_rows[1].read())
+                    sys.append(rec[0])
+                    sys.append(rec[1].read())
 
-                    Mainsys[remaining_rows[0]] = sys
+                    Mainsys[rec[0]] = sys
                 except Exception:
-                    this.logger.debug("error ")
-                remaining_rows = this.cursor.fetchone()
+                    this.logger_info.info("error ")
+                # remaining_rows = cursor.fetchone()
 
             return Mainsys
         except Exception:
             traceback.print_exc()
         finally:
-            this.closeConnection()
+            if cursor:
+                cursor.close()
+            if con:
+                con.close()            
 
                 
-    def readClobTriggerTable(this,tname,startts,endts,tablewildcard):
+    def readClobTriggerTable(this,tname,startts,endts,tablewildcard,tablewildcardallow):
+        cursor = None
+        con = None
        
         Mainsys = []
         try:
-            
-            ignore =  ""
-            tablewildcardArray = tablewildcard.split("\r\n")
-            for tabwild in tablewildcardArray:
-                if tabwild.strip().upper() != "":
-                    ignore = ignore + "  and tname not like '%"+ tabwild.replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
-            
+            con=oracledb.connect(
+            user=this.username,
+            password=this.password,
+            dsn=this.jdbcurl)
+     
+            cursor = con.cursor()             
+            ignore =  this.buildTablewildcardscnunmin(tablewildcard,tablewildcardallow,tname,startts,endts)
+          
        
-            orderby= " order by scnnum,updatets,tname"
-            statement="select TNAME,ROWIDVAL,SCNNUM, information,UPDATETS from "  + tname   + " where updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI') "  + ignore + "  " + orderby
-            this.logger.debug(statement)
-            this.connect() 
-            this.cursor.execute(statement) 
+            # orderby= " order by scnnum,updatets,tname"
+            statement="select TNAME,ROWIDVAL,SCNNUM, information,UPDATETS from "  + tname   + " where updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI') "  + ignore + "  "  
+            this.logger_info.info(statement)
+             
+            cursor.execute(statement) 
                     
             #results = cursor.fetchone()
-            remaining_rows = this.cursor.fetchone()
-            this.logger.debug('connected'+str(len(remaining_rows))) 
+            remaining_rows = cursor.fetchall()
+            this.logger_info.info('connected'+str(len(remaining_rows))) 
             if remaining_rows == None :
-                this.logger.debug('No rows')
+                this.logger_info.info('No rows')
                 return
-            while (remaining_rows):
+            for rec in remaining_rows:
                 sys =[]
                 try:
-                    sys.append(remaining_rows[0])
-                    sys.append(remaining_rows[1])
-                    sys.append(remaining_rows[2])            
-                    sys.append ( remaining_rows[3].read())
-                    sys.append(remaining_rows[4])
+                    sys.append(rec[0])
+                    sys.append(rec[1])
+                    sys.append(rec[2])            
+                    sys.append ( rec[3].read())
+                    sys.append(rec[4])
                     Mainsys.append(sys)
                 except Exception:
-                    # this.logger.debug("error clob") 
+                    # this.logger_debug.debug("error clob") 
                     err=1
-                remaining_rows = this.cursor.fetchone()
-            this.logger.debug('connected'+str(len(Mainsys))) 
+                # remaining_rows = cursor.fetchone()
+            this.logger_info.info('connected'+str(len(Mainsys))) 
             return Mainsys
         except Exception:
             traceback.print_exc()
         finally:
-            this.closeConnection()                
+            if cursor:
+                cursor.close()
+            if con:
+                con.close()                            
 
-    def countRows(this,tname,startts,endts):
-        
+    def countRows(this,tname,startts,endts,tablewildcard,tablewildcardallow):
+        cursor = None
+        con = None
+       
         try:
         
             Mainsys=[]
-            this.connect() 
-            statement="SELECT count(*) FROM "  + tname   + " where TNAME not like '%_BATCH%' and updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI') "
-            this.cursor.execute(statement)    		
+            con=oracledb.connect(
+            user=this.username,
+            password=this.password,
+            dsn=this.jdbcurl)
+            ignore =  this.buildTablewildcardscnunmin(tablewildcard,tablewildcardallow,tname,startts,endts)
+            
+            cursor = con.cursor()              
+            statement="SELECT count(*) FROM "  + tname   + " where  updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI') " + ignore
+            this.logger_info.info(statement)
+            cursor.execute(statement)    		
             
             
-            remaining_rows = this.cursor.fetchone()
+            remaining_rows = cursor.fetchone()
             
             if remaining_rows == None :
-                this.logger.debug('No rows')
+                this.logger_info.info('No rows')
                 return 0;
             return  remaining_rows[0]
             
         except Exception:
-            this.logger.error("exception ",exc_info=1)
+            this.logger_debug.debug("exception ",exc_info=1)
         finally:
-            this.closeConnection()
+            if cursor:
+                cursor.close()
+            if con:
+                con.close()            
 
-    def fbatchRangeSearch(this,tname,startts,endts,tablewildcard):
+    def fbatchRangeSearch(this,batch,tname,startts,endts,tablewildcard,tablewildcardallow):
+        cursor = None
+        con = None
         
         Mainsys = []
         try:
-            this.connect()
-            ignore =  ""
-            tablewildcardArray = tablewildcard.split("\r\n")
-            for tabwild in tablewildcardArray:
-                if tabwild.strip().upper() != "":
-                    ignore = ignore + "  and tname not like '%"+ tabwild.replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+            con=oracledb.connect(
+            user=this.username,
+            password=this.password,
+            dsn=this.jdbcurl)
+     
+            cursor = con.cursor()             
+            ignore =  this.buildTablewildcardscnunminSpecial(tablewildcard,tablewildcardallow,tname,startts,endts)
+             
             
        
-            orderby= " order by scnnum,updatets,tname"
-            statement="select TNAME,ROWIDVAL,SCNNUM,xmltype.getclobval(information),UPDATETS from "  + tname   + " where updatets > TO_TIMESTAMP('"+str(startts) + "','YYYY-mm-dd HH24:MI:SS.FF6')  and updatets < TO_TIMESTAMP('"+str(endts) + "','YYYY-mm-dd HH24:MI:SS.FF6') "  + ignore + "  " + orderby
-            this.logger.debug(statement)
+            # orderby= " order by scnnum,updatets,tname"
+            statement="SELECT * from (select TNAME,ROWIDVAL,SCNNUM,xmltype.getclobval(information),UPDATETS from "  + tname   + " where   updatets > TO_TIMESTAMP('"+str(startts) + "','YYYY-mm-dd HH24:MI:SS.FF6')  and updatets < TO_TIMESTAMP('"+str(endts) + "','YYYY-mm-dd HH24:MI:SS.FF6') "  + ignore + " ) c where  c.updatets > TO_TIMESTAMP('"+str(startts) + "','YYYY-mm-dd HH24:MI:SS.FF6')  and c.updatets < TO_TIMESTAMP('"+str(endts) + "','YYYY-mm-dd HH24:MI:SS.FF6') "   
+            this.logger_info.info(batch+":"+statement)
             
-            this.cursor.execute(statement) 
+            cursor.execute(statement) 
              
-            remaining_rows = this.cursor.fetchone()
+            remaining_rows = cursor.fetchall()
             
             if remaining_rows == None :
-                this.logger.debug('No rows')
+                this.logger_info.info('No rows')
                 return
-            while remaining_rows:
+            for rec in  remaining_rows:
                 sys =[]
                 try:
-                    sys.append(remaining_rows[0])
-                    sys.append(remaining_rows[1])
-                    sys.append(remaining_rows[2])            
-                    sys.append ( remaining_rows[3].read())
-                    sys.append(remaining_rows[4])
+                    sys.append(rec[0])
+                    sys.append(rec[1])
+                    sys.append(rec[2])            
+                    sys.append ( rec[3].read())
+                    sys.append(rec[4])
                     Mainsys.append(sys)
                 except Exception:
-                    this.logger.debug("error clob") 
-                remaining_rows = this.cursor.fetchone()
-            this.logger.debug('No of rows ::----->'+str(len(Mainsys))) 
+                    this.logger_info.info("Error reading xml for: "+rec[0]+":"+rec[1]+":"+rec[2]) 
+                # remaining_rows = cursor.fetchone()
+            this.logger_info.info('No of rows ::----->'+str(len(Mainsys))) 
             return Mainsys
         except Exception:
-            this.logger.error("exception ",exc_info=1)
+            this.logger_debug.debug("exception ",exc_info=1)
         finally:
-            this.closeConnection() 
+            if cursor:
+                cursor.close()
+            if con:
+                con.close()             
             
     
     def oracleGetRealTnameType(this ):
+        cursor = None
+        con = None
        
         Mainsys = {}
         try:
-
+            con=oracledb.connect(
+            user=this.username,
+            password=this.password,
+            dsn=this.jdbcurl)
+     
+            cursor = con.cursor() 
             
-            this.connect()
             
-            statement = """  select a.recid,a.result,b.oracfname,c.recid||'-'||c.description
+            
+            statement = """  select   b.recid,a.result,b.oracfname,c.recid||'-'||c.description
             from (SELECT
                 recid,            
                extract(xmlrecord, '/row/c5/text()').getstringval() product,
@@ -176,16 +217,16 @@ class OracleDao(CommonOraDao.CommonOraDao):
             select   distinct (CASE WHEN INSTR(recid, '$') > 0
         THEN  substr(recid, INSTR(recid,'.')+1, instr(recid, '$') - INSTR(recid,'.')-1)
         ELSE  substr(recid, INSTR(recid,'.')+1)
-         END)   recid ,SUBSTR(ORCLFILENAME, INSTR(ORCLFILENAME,'_', 1, 1)+1)  oracfname from tafj_voc b where ORCLFILENAME is not null ) b,
+         END)   recid ,SUBSTR(ORCLFILENAME, INSTR(ORCLFILENAME,'_', 1, 1)+1)  oracfname  from tafj_voc  where ORCLFILENAME is not null ) b,
            (select recid,extract(xmlrecord, '/row/c1/text()').getstringval()  as description from F_EB_PRODUCT) c
         where a.recid=b.recid  and
         a.product=c.recid    """
     
-            this.cursor.execute(statement)    		
-            remaining_rows = this.cursor.fetchall()
+            cursor.execute(statement)    		
+            remaining_rows = cursor.fetchall()
 
             if remaining_rows == None :
-                this.logger.debug('No rows')
+                this.logger_info.info('No rows')
                 return
             for rec in remaining_rows:
                 sys =[]
@@ -199,41 +240,49 @@ class OracleDao(CommonOraDao.CommonOraDao):
 
                     Mainsys[rec[2]]=sys
                 except Exception:
-                    this.logger.debug("error ") 
+                    this.logger_info.info("error ") 
                 # remaining_rows = cursor.fetchone()
 
             return Mainsys
         except Exception:
             traceback.print_exc()
+        finally:
+            if cursor:
+                cursor.close()
+            if con:
+                con.close()                 
         
 
 
         
     
-    def readFromTriggerTable(this,tname,startts,endts,tablewildcard):
+    def readFromTriggerTable(this,tname,startts,endts,tablewildcard,tablewildcardallow):
+        cursor = None
+        con = None
         
         Mainsys = []
         try:
-            this.connect()
-            ignore =  ""
-            tablewildcardArray = tablewildcard.split("\r\n")
-            for tabwild in tablewildcardArray:
-                if tabwild.strip().upper() != "":
-                    ignore = ignore + "  and tname not like '%"+ tabwild.replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+            con=oracledb.connect(
+            user=this.username,
+            password=this.password,
+            dsn=this.jdbcurl)
+     
+            cursor = con.cursor()             
             
+            ignore = this.buildTablewildcardscnunmin(tablewildcard,tablewildcardallow,tname,startts,endts)
        
-            orderby= " order by scnnum,updatets,tname"
-            statement="select TNAME,ROWIDVAL,SCNNUM,xmltype.getclobval(information),UPDATETS from "  + tname   + " where updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI') "   + ignore + "  " + orderby
-            this.logger.debug(statement)
+            # orderby= " order by scnnum,updatets,tname"
+            statement="select TNAME,ROWIDVAL,SCNNUM,xmltype.getclobval(information),UPDATETS from "  + tname   + " where updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI') "   + ignore + "  "  
+            this.logger_info.info(statement)
              
-            this.cursor.execute(statement) 
+            cursor.execute(statement) 
               
-            remaining_rows = this.cursor.fetchone()
+            remaining_rows = cursor.fetchone()
             
             if remaining_rows == None :
-                this.logger.debug('No rows')
+                this.logger_info.info('No rows')
                 return
-            while (remaining_rows):
+            while remaining_rows:
                 sys =[]
                 try:
                     sys.append(remaining_rows[0])
@@ -243,88 +292,202 @@ class OracleDao(CommonOraDao.CommonOraDao):
                     sys.append(remaining_rows[4])
                     Mainsys.append(sys)
                 except Exception:
-                    this.logger.debug("error ") 
-                remaining_rows = this.cursor.fetchone()
-            this.logger.debug('connected'+str(len(Mainsys))) 
+                    this.logger_info.info("error ") 
+                remaining_rows = cursor.fetchone()
+            this.logger_info.info('connected'+str(len(Mainsys))) 
             return Mainsys
         except Exception:
             traceback.print_exc()
         finally:
-            this.closeConnection()
+            if cursor:
+                cursor.close()
+            if con:
+                con.close()            
             
             
     def readFromTriggerTableCont(this,tname,startts,endts,oldarr):
-    
+        cursor = None
+        con = None
+
         try:
         
             Mainsys=[]
-            this.connect()
-            statement="SELECT ROWIDVAL,MIN(UPDATETS) MIN ,MAX(UPDATETS) FROM "  + tname   + " WHERE TNAME ='UPDATING on F_BATCH' AND xmltype.getclobval(information) NOT  LIKE '%<c3>0</c3>%'"  +  " and updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI')  "  +"  GROUP BY ROWIDVAL"
-            this.cursor.execute(statement)    		
+            con=oracledb.connect(
+            user=this.username,
+            password=this.password,
+            dsn=this.jdbcurl)
+     
+            cursor = con.cursor()            
+            statement="SELECT ROWIDVAL,MIN(UPDATETS) MIN ,MAX(UPDATETS) FROM "  + tname   + " WHERE TNAME ='UPDATING on F_BATCH' AND xmltype.getclobval(information) NOT  LIKE '%<c3>0</c3>%'"  +  " and updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI')  "  +"  GROUP BY ROWIDVAL order by ROWIDVAL "
+            cursor.execute(statement)    		
             #results = cursor.fetchone()
             
-            remaining_rows = this.cursor.fetchall()
+            remaining_rows = cursor.fetchall()
             
             if remaining_rows == None :
-                this.logger.debug('No rows')
+                this.logger_info.info('No rows')
                 return
             for rec in remaining_rows:
                 sys =[]
                 try:
-                    if remaining_rows[0] in oldarr:
-                        this.logger.debug("Already Processed"+ remaining_rows[0])
+                    if rec[0] in oldarr:
+                        this.logger_info.info("Already Processed"+ rec[0])
                     else:
+                        this.logger_info.info(rec[0])
                         sys.append(rec[0])
                         sys.append(rec[1])
                         sys.append(rec[2])                  
                         Mainsys.append(sys)
                 except Exception:
-                    this.logger.debug("error ") 
-                # remaining_rows = this.cursor.fetchone()
-            
+                    this.logger_info.info("error ") 
+                # remaining_rows = cursor.fetchone()
+            this.logger_info.info("Total records Batch Processing---->"+str(len(Mainsys)))
             return Mainsys
         except Exception:
-            this.logger.error("exception ",exc_info=1)
+            this.logger_debug.debug("exception ",exc_info=1)
         finally:
-            this.closeConnection()        
+            if cursor:
+                cursor.close()
+            if con:
+                con.close()                    
     
     def fbatchMinMax(this,tname,startts,endts,oldarr):
+        
         cursor = None
         con = None
         
         try:
             
             Mainsys=[]
-            this.connect()
+            con=oracledb.connect(
+            user=this.username,
+            password=this.password,
+            dsn=this.jdbcurl)
+     
+            cursor = con.cursor() 
             statement="SELECT ROWIDVAL,MIN(UPDATETS) MIN ,MAX(UPDATETS) FROM "  + tname   + " WHERE TNAME ='UPDATING on F_BATCH' AND xmltype.getclobval(information) NOT  LIKE '%<c3>0</c3>%' "  +  " and updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI')  "  +" GROUP BY ROWIDVAL"
-            this.cursor.execute(statement)    		
+            cursor.execute(statement)    		
              
             
-            remaining_rows = this.cursor.fetchall()
+            remaining_rows = cursor.fetchall()
             
             if remaining_rows == None :
-                this.logger.debug('No rows')
+                this.logger_info.info('No rows')
                 return
             for rec in remaining_rows:
                 sys =[]
                 try:
-                    if remaining_rows[0] in oldarr:
-                        this.logger.debug("Already Processed"+ remaining_rows[0])
+                    if rec[0] in oldarr:
+                        this.logger_info.info("Already Processed"+ rec[0])
                     else:
                         sys.append(rec[0])
                         sys.append(rec[1])
                         sys.append(rec[2])                  
                         Mainsys.append(sys)
                 except Exception:
-                    this.logger.debug("error ") 
+                    this.logger_info.info("error ") 
                 # remaining_rows = cursor.fetchone()
             
             return Mainsys
         except Exception:
-            this.logger.error("exception ",exc_info=1)
+            this.logger_debug.debug("exception ",exc_info=1)
         finally:
-            this.closeConnection()
-                
+            if cursor:
+                cursor.close()
+            if con:
+                con.close()
+            
+    def buildTablewildcard(this,tablewildcard,tablewildcardallow):
+        ignore =  ""
+        tablewildcardArray = tablewildcard.split("\r\n")
+        if tablewildcardallow == 'LIKE' :
+            counter=1
+            for tabwild in tablewildcardArray:
+                if tabwild.strip().upper() != "":
+                    if counter==1 :
+                        counter=counter+1
+                        ignore= " and ( "
+                        ignore = ignore + "   tname like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+                        continue
+                    ignore = ignore + " or  tname like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+            if ignore!= "":
+                ignore= ignore+ " ) "    
+        elif  tablewildcardallow == 'NOTLIKE' : 
+            counter=1
+            for tabwild in tablewildcardArray:
+                if tabwild.strip().upper() != "":
+                    if counter==1 :
+                        counter=counter+1
+                        ignore= " and ( "
+                        ignore = ignore + "   tname not like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+                        continue
+                    ignore = ignore + " or  tname not like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+            if ignore!= "":
+                ignore= ignore+ " ) "    
+        return ignore  
+    
+    
+    def buildTablewildcardscnunmin(this,tablewildcard,tablewildcardallow,tname,startts,endts):
+        ignore =  ""
+        tablewildcardArray = tablewildcard.split("\r\n")
+        if tablewildcardallow == 'LIKE' :
+            counter=1
+            for tabwild in tablewildcardArray:
+                if tabwild.strip().upper() != "":
+                    if counter==1 :
+                        counter=counter+1
+                        ignore= " and  scnnum in ( select scnnum from  " + tname +" where "
+                        ignore = ignore + " (  tname like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+                        continue
+                    ignore = ignore + " or  tname like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+            if ignore!= "":
+                ignore= ignore+ " ) and  updatets > TO_TIMESTAMP('"+str(startts) + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+str(endts) + "','YYYY-mm-dd\"T\"HH24:MI') )"    
+        elif tablewildcardallow == 'NOTLIKE' :        
+            counter=1
+            for tabwild in tablewildcardArray:
+                if tabwild.strip().upper() != "":
+                    if counter==1 :
+                        counter=counter+1
+                        ignore= " and  scnnum in ( select scnnum from  " + tname +" where "
+                        ignore = ignore + "   tname not like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+                        continue
+                    ignore = ignore + " or  tname not like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+            if ignore!= "":
+                ignore= ignore+ " )  updatets > TO_TIMESTAMP('"+str(startts) + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+str(endts) + "','YYYY-mm-dd\"T\"HH24:MI')  "        
+        
+        return ignore            
+    
+    
+    
+    def buildTablewildcardscnunminSpecial(this,tablewildcard,tablewildcardallow,tname,startts,endts):
+        ignore =  ""
+        tablewildcardArray = tablewildcard.split("\r\n")
+        if tablewildcardallow == 'LIKE' :
+            counter=1
+            for tabwild in tablewildcardArray:
+                if tabwild.strip().upper() != "":
+                    if counter==1 :
+                        counter=counter+1
+                        ignore= " and   scnnum in ( select scnnum from  " + tname +" where "
+                        ignore = ignore + " (  tname like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+                        continue
+                    ignore = ignore + " or  tname like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+            if ignore!= "":
+                ignore= ignore+ " ) and  updatets > TO_TIMESTAMP('"+str(startts) + "','YYYY-mm-dd HH24:MI:SS.FF6')  and updatets < TO_TIMESTAMP('"+str(endts) + "','YYYY-mm-dd HH24:MI:SS.FF6')  )"    
+        elif tablewildcardallow == 'NOTLIKE' :        
+            counter=1
+            for tabwild in tablewildcardArray:
+                if tabwild.strip().upper() != "":
+                    if counter==1 :
+                        counter=counter+1
+                        ignore= " and   scnnum in ( select scnnum from  " + tname +" where "
+                        ignore = ignore + "(   tname not like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+                        continue
+                    ignore = ignore + " or  tname not like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+            if ignore!= "":
+                ignore= ignore+ " ) and  updatets > TO_TIMESTAMP('"+str(startts) + "','YYYY-mm-dd HH24:MI:SS.FF6')  and updatets < TO_TIMESTAMP('"+str(endts) + "','YYYY-mm-dd HH24:MI:SS.FF6')  )"        
+        
+        return ignore      
 # logging.basicConfig(
 #     level=logging.DEBUG,
 #     format="[%(asctime)s:%(lineno)s - %(funcName)20s() ] %(message)s ",
@@ -332,5 +495,5 @@ class OracleDao(CommonOraDao.CommonOraDao):
 # )
 # logger = logging.getLogger("ReadFromDb")
 # logger.setLevel(logging.DEBUG)
-# logger.debug(os.path.abspath(os.getcwd()))
+# this.logger_debug.debug(os.path.abspath(os.getcwd()))
 # oracleDao = OracleDao(logger, "newsys", "password", "localhost:1521/XEPDB1")

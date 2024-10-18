@@ -10,7 +10,7 @@ class DiffTablestructDao(CommonDao.CommonDao):
     def deleteoldRecords(this, taskid):
 
         try:
-            this.logger.debug("Delete old records")
+            this.logger_info.info("Delete old records")
             this.connect()
             
             statement = (
@@ -20,7 +20,7 @@ class DiffTablestructDao(CommonDao.CommonDao):
             this.connection.commit()
 
         except psycopg2.DatabaseError as e:
-            this.logger.debug("There is a problem with Postgress", str(e))
+            this.logger_debug.debug("There is a problem with Postgress", str(e))
         finally:
             this.closeConnection()
 
@@ -75,7 +75,7 @@ class DiffTablestructDao(CommonDao.CommonDao):
 
                     Mainsys[rec[0]]=sys
                 except Exception:
-                    this.logger.debug("error ") 
+                    this.logger_debug.debug("error ") 
                 # remaining_rows = cursor.fetchone()
 
             return Mainsys

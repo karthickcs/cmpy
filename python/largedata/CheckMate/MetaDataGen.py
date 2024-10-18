@@ -9,7 +9,7 @@ import psycopg2
 
 class MetaDataGen:
 
-    def generateMetaDataDifference(this,diffTablestructObj:DiffTablestructDao.DiffTablestructDao ,tabdatold,tabdatnew,taskid,runid):
+    def generateMetaDataDifference(this,diffTablestructObj:DiffTablestructDao.DiffTablestructDao ,tabdatold,tabdatnew,taskid,runid,realtname):
         totalerr=""       
         
         try:         
@@ -32,7 +32,7 @@ class MetaDataGen:
                 diffTablestructObj.insertRecords(taskid,runid,newtname, oldjson,newjson,difference)  
                 diffTablestructObj.connection.commit()  
             for keyold in  list(tabdatold.keys()):
-                #logger.debug("Comparing --> Meta data -->"+keyold) 
+                #this.logger_debug.debug("Comparing --> Meta data -->"+keyold) 
                 oldtname=tabdatold[keyold][0]
                 oldrecord=tabdatold[keyold][1]
                 newtname = ''
@@ -83,70 +83,72 @@ class MetaDataGen:
                 path=path.replace("/row/","")
                 path=path[0:path.find("[")]
                 for x in r:
-                    if path.find("c3") > -1 and  x.text and  x.text.isnumeric(): 
-                        att=x.attrib.keys() 
-                        if len(att) ==0 :
-                            datadict[path]=x.text
-                        else:
-                            aname=x.attrib.keys()[0]
-                            if aname.find("id") > -1:
-                                datadict["tablename"]=x.attrib[aname]   
+                    try:
+                        if path.find("c3") > -1 and  x.text and  x.text.isnumeric(): 
+                            att=x.attrib.keys() 
+                            if len(att) ==0 :
+                                datadict[path]=x.text
                             else:
-                                #datadict[path+"_"+str(aname)+"_"+x.attrib[aname]]=x.text
-                                datadict["C"+x.text] =mytemp["Main"+x.attrib[aname]]
-                                idict[x.attrib[aname]]=x.text
-                    if path.find("c4") > -1 and  x.text  : 
-                        att=x.attrib.keys() 
-                        if len(att) ==0 :
-                            datadict[path]=x.text
-                        else:
-                            aname=x.attrib.keys()[0]
-                            if aname.find("id") > -1:
-                                datadict["tablename"]=x.attrib[aname]   
+                                aname=x.attrib.keys()[0]
+                                if aname.find("id") > -1:
+                                    datadict["tablename"]=x.attrib[aname]   
+                                else:
+                                    #datadict[path+"_"+str(aname)+"_"+x.attrib[aname]]=x.text
+                                    datadict["C"+x.text] =mytemp["Main"+x.attrib[aname]]
+                                    idict[x.attrib[aname]]=x.text
+                        if path.find("c4") > -1 and  x.text  : 
+                            att=x.attrib.keys() 
+                            if len(att) ==0 :
+                                datadict[path]=x.text
                             else:
-                                try:        
-                                    datadict["C"+idict[x.attrib[aname]]] =datadict["C"+idict[x.attrib[aname]]]+"|"+x.text                                 
-                                except Exception:
-                                    errval=errval+1 
-                    if path.find("c6") > -1 and  x.text  : 
-                        att=x.attrib.keys() 
-                        if len(att) ==0 :
-                            datadict[path]=x.text
-                        else:
-                            aname=x.attrib.keys()[0]
-                            if aname.find("id") > -1:
-                                datadict["tablename"]=x.attrib[aname]   
+                                aname=x.attrib.keys()[0]
+                                if aname.find("id") > -1:
+                                    datadict["tablename"]=x.attrib[aname]   
+                                else:
+                                    try:        
+                                        datadict["C"+idict[x.attrib[aname]]] =datadict["C"+idict[x.attrib[aname]]]+"|"+x.text                                 
+                                    except Exception:
+                                        errval=errval+1 
+                        if path.find("c6") > -1 and  x.text  : 
+                            att=x.attrib.keys() 
+                            if len(att) ==0 :
+                                datadict[path]=x.text
                             else:
-                                try:        
-                                    datadict["C"+idict[x.attrib[aname]]] =datadict["C"+idict[x.attrib[aname]]]+"|"+x.text                                 
-                                except Exception:
-                                    errval=errval+1 
-                    if path.find("c10") > -1 and  x.text  : 
-                        att=x.attrib.keys() 
-                        if len(att) ==0 :
-                            datadict[path]=x.text
-                        else:
-                            aname=x.attrib.keys()[0]
-                            if aname.find("id") > -1:
-                                datadict["tablename"]=x.attrib[aname]   
+                                aname=x.attrib.keys()[0]
+                                if aname.find("id") > -1:
+                                    datadict["tablename"]=x.attrib[aname]   
+                                else:
+                                    try:        
+                                        datadict["C"+idict[x.attrib[aname]]] =datadict["C"+idict[x.attrib[aname]]]+"|"+x.text                                 
+                                    except Exception:
+                                        errval=errval+1 
+                        if path.find("c10") > -1 and  x.text  : 
+                            att=x.attrib.keys() 
+                            if len(att) ==0 :
+                                datadict[path]=x.text
                             else:
-                                try:        
-                                    datadict["C"+idict[x.attrib[aname]]] =datadict["C"+idict[x.attrib[aname]]]+"|"+x.text                                 
-                                except Exception:
-                                    errval=errval+1 
-                                
-                    if path.find("c1") > -1 : 
-                        att=x.attrib.keys() 
-                        if len(att) ==0 :
-                            mytemp[path]=x.text
-                        else:
-                            aname=x.attrib.keys()[0]
-                            if aname.find("id") > -1:
-                                mytemp["tablename"]=x.attrib[aname]   
+                                aname=x.attrib.keys()[0]
+                                if aname.find("id") > -1:
+                                    datadict["tablename"]=x.attrib[aname]   
+                                else:
+                                    try:        
+                                        datadict["C"+idict[x.attrib[aname]]] =datadict["C"+idict[x.attrib[aname]]]+"|"+x.text                                 
+                                    except Exception:
+                                        errval=errval+1 
+                                    
+                        if path.find("c1") > -1 : 
+                            att=x.attrib.keys() 
+                            if len(att) ==0 :
+                                mytemp[path]=x.text
                             else:
-                                #datadict[path+"_"+str(aname)+"_"+x.attrib[aname]]=x.text
-                                mytemp["Main"+x.attrib[aname]] =x.text           
-                                
+                                aname=x.attrib.keys()[0]
+                                if aname.find("id") > -1:
+                                    mytemp["tablename"]=x.attrib[aname]   
+                                else:
+                                    #datadict[path+"_"+str(aname)+"_"+x.attrib[aname]]=x.text
+                                    mytemp["Main"+x.attrib[aname]] =x.text           
+                    except Exception:
+                        err=1                
                                 
         except Exception:
             traceback.print_exc()
