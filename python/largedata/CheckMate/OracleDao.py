@@ -64,8 +64,13 @@ class OracleDao(CommonOraDao.CommonOraDao):
             password=this.password,
             dsn=this.jdbcurl)
      
-            cursor = con.cursor()             
-            ignore =  this.buildTablewildcardscnunmin(tablewildcard,tablewildcardallow,tname,startts,endts)
+            cursor = con.cursor()     
+            if tablewildcardallow == 'SPEED':
+                ignore = this.getimptables(tname ) 
+            else:                            
+                ignore =  this.buildTablewildcardscnunmin(tablewildcard,tablewildcardallow,tname,startts,endts)
+                     
+            
           
        
             # orderby= " order by scnnum,updatets,tname"
@@ -114,7 +119,10 @@ class OracleDao(CommonOraDao.CommonOraDao):
             user=this.username,
             password=this.password,
             dsn=this.jdbcurl)
-            ignore =  this.buildTablewildcardscnunmin(tablewildcard,tablewildcardallow,tname,startts,endts)
+            if tablewildcardallow == 'SPEED':
+                ignore = this.getimptables(tname ) 
+            else:                            
+                ignore =  this.buildTablewildcardscnunmin(tablewildcard,tablewildcardallow,tname,startts,endts)
             
             cursor = con.cursor()              
             statement="SELECT count(*) FROM "  + tname   + " where  updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI') " + ignore
@@ -148,36 +156,67 @@ class OracleDao(CommonOraDao.CommonOraDao):
             password=this.password,
             dsn=this.jdbcurl)
      
-            cursor = con.cursor()             
-            ignore =  this.buildTablewildcardscnunminSpecial(tablewildcard,tablewildcardallow,tname,startts,endts)
+            cursor = con.cursor() 
+            if tablewildcardallow == 'SPEED':
+                ignore = this.getimptables(tname ) 
+            else:                            
+                ignore =  this.buildTablewildcardscnunminSpecial(tablewildcard,tablewildcardallow,tname,startts,endts)
              
             
        
             # orderby= " order by scnnum,updatets,tname"
-            statement="SELECT * from (select TNAME,ROWIDVAL,SCNNUM,xmltype.getclobval(information),UPDATETS from "  + tname   + " where   updatets > TO_TIMESTAMP('"+str(startts) + "','YYYY-mm-dd HH24:MI:SS.FF6')  and updatets < TO_TIMESTAMP('"+str(endts) + "','YYYY-mm-dd HH24:MI:SS.FF6') "  + ignore + " ) c where  c.updatets > TO_TIMESTAMP('"+str(startts) + "','YYYY-mm-dd HH24:MI:SS.FF6')  and c.updatets < TO_TIMESTAMP('"+str(endts) + "','YYYY-mm-dd HH24:MI:SS.FF6') "   
+            statement="select TNAME,ROWIDVAL,SCNNUM,xmltype.getclobval(information),UPDATETS from "  + tname   + " where   updatets > TO_TIMESTAMP('"+str(startts) + "','YYYY-mm-dd HH24:MI:SS.FF6')  and updatets < TO_TIMESTAMP('"+str(endts) + "','YYYY-mm-dd HH24:MI:SS.FF6') " + this.buildTablewildcardIgnoreTables() + ignore    
             this.logger_info.info(batch+":"+statement)
+            countstatement="select count(*) from "  + tname   + " where   updatets > TO_TIMESTAMP('"+str(startts) + "','YYYY-mm-dd HH24:MI:SS.FF6')  and updatets < TO_TIMESTAMP('"+str(endts) + "','YYYY-mm-dd HH24:MI:SS.FF6') "  + ignore    
+            cursor.execute(countstatement) 
+            rows = cursor.fetchone()
             
-            cursor.execute(statement) 
-             
-            remaining_rows = cursor.fetchall()
             
-            if remaining_rows == None :
-                this.logger_info.info('No rows')
-                return
-            for rec in  remaining_rows:
-                sys =[]
-                try:
-                    sys.append(rec[0])
-                    sys.append(rec[1])
-                    sys.append(rec[2])            
-                    sys.append ( rec[3].read())
-                    sys.append(rec[4])
-                    Mainsys.append(sys)
-                except Exception:
-                    this.logger_info.info("Error reading xml for: "+rec[0]+":"+rec[1]+":"+rec[2]) 
-                # remaining_rows = cursor.fetchone()
-            this.logger_info.info('No of rows ::----->'+str(len(Mainsys))) 
-            return Mainsys
+            
+            if rows[0] > 2999 : 
+                cursor.execute(statement)  
+                remaining_rows = cursor.fetchone()
+                
+                if remaining_rows == None :
+                    this.logger_info.info('No rows')
+                    return
+                while remaining_rows:
+                    sys =[]
+                    try:
+                        sys.append(remaining_rows[0])
+                        sys.append(remaining_rows[1])
+                        sys.append(remaining_rows[2])            
+                        sys.append ( remaining_rows[3].read())
+                        sys.append(remaining_rows[4])
+                        Mainsys.append(sys)
+                    except Exception:
+                        this.logger_info.info("Error reading xml for: "+remaining_rows[0]+":"+remaining_rows[1]+":"+remaining_rows[2]) 
+                    remaining_rows = cursor.fetchone()
+                this.logger_info.info('No of rows ::----->'+str(len(Mainsys))) 
+                return Mainsys
+            elif rows[0] > 0:
+                cursor.execute(statement) 
+                remaining_rows = cursor.fetchall()
+                
+                if remaining_rows == None :
+                    this.logger_info.info('No rows')
+                    return
+                for rec in  remaining_rows:
+                    sys =[]
+                    try:
+                        sys.append(rec[0])
+                        sys.append(rec[1])
+                        sys.append(rec[2])            
+                        sys.append (rec[3].read())
+                        sys.append(rec[4])
+                        Mainsys.append(sys)
+                    except Exception:
+                        this.logger_info.info("Error reading xml for: "+rec[0]+":"+rec[1]+":"+rec[2]) 
+                     
+                this.logger_info.info('No of rows ::----->'+str(len(Mainsys))) 
+                return Mainsys
+                
+            
         except Exception:
             this.logger_debug.debug("exception ",exc_info=1)
         finally:
@@ -185,7 +224,8 @@ class OracleDao(CommonOraDao.CommonOraDao):
                 cursor.close()
             if con:
                 con.close()             
-            
+    
+    
     
     def oracleGetRealTnameType(this ):
         cursor = None
@@ -253,7 +293,62 @@ class OracleDao(CommonOraDao.CommonOraDao):
                 con.close()                 
         
 
+    def oracleGettablefrompgm(this, tname ):
+        cursor = None
+        con = None
+       
+        Mainsys = {}
+        try:
+            con=oracledb.connect(
+            user=this.username,
+            password=this.password,
+            dsn=this.jdbcurl)
+     
+            cursor = con.cursor() 
+            
+            
+            
+            statement = """  select b.tname   from 
+        (
+        SELECT
+        REPLACE( recid,'.','_')  tname
+        FROM
+            f_pgm_file
+        WHERE
+            extract(xmlrecord, '/row/c1/text()').getstringval() = 'H') a,
+                        
+            (select  distinct SUBSTR(tname, INSTR(tname,'_', 1, 1)+1)   tname from  """
+            
+            
+              
+            statement2 = """ ) b
+            where a.tname=b.tname
+            AND ( b.tname NOT LIKE '%BATCH%' ESCAPE '\\'
+                AND b.tname NOT LIKE '%PROTOCOL%' ESCAPE '\\'
+                AND b.tname NOT LIKE '%EB\\_EOD\\_ERROR%' ESCAPE '\\'
+                AND b.tname NOT LIKE '%TAFJ%' ESCAPE '\\'
+                AND b.tname NOT LIKE '%LOCK%' ESCAPE '\\'
+                AND b.tname NOT LIKE '%OS\\_%' ESCAPE '\\' )        
+        """
+            fstatement = statement + tname + statement2
+            fstatement = fstatement.replace('\n', '')
+            cursor.execute(fstatement)    		
+            remaining_rows = cursor.fetchall()
 
+            if remaining_rows == None :
+                this.logger_info.info('No rows')
+                return
+            
+                # remaining_rows = cursor.fetchone()
+
+            return remaining_rows
+        except Exception:
+            traceback.print_exc()
+        finally:
+            if cursor:
+                cursor.close()
+            if con:
+                con.close()    
         
     
     def readFromTriggerTable(this,tname,startts,endts,tablewildcard,tablewildcardallow):
@@ -268,8 +363,11 @@ class OracleDao(CommonOraDao.CommonOraDao):
             dsn=this.jdbcurl)
      
             cursor = con.cursor()             
-            
-            ignore = this.buildTablewildcardscnunmin(tablewildcard,tablewildcardallow,tname,startts,endts)
+            # ignore = this.getimptables(tablewildcard,tablewildcardallow,tname,startts,endts) 
+            if tablewildcardallow == 'SPEED':
+                ignore = this.getimptables(tname ) 
+            else:                            
+                ignore =  this.buildTablewildcardscnunmin(tablewildcard,tablewildcardallow,tname,startts,endts)
        
             # orderby= " order by scnnum,updatets,tname"
             statement="select TNAME,ROWIDVAL,SCNNUM,xmltype.getclobval(information),UPDATETS from "  + tname   + " where updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI') "   + ignore + "  "  
@@ -318,7 +416,7 @@ class OracleDao(CommonOraDao.CommonOraDao):
             dsn=this.jdbcurl)
      
             cursor = con.cursor()            
-            statement="SELECT ROWIDVAL,MIN(UPDATETS) MIN ,MAX(UPDATETS) FROM "  + tname   + " WHERE TNAME ='UPDATING on F_BATCH' AND xmltype.getclobval(information) NOT  LIKE '%<c3>0</c3>%'"  +  " and updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI')  "  +"  GROUP BY ROWIDVAL order by ROWIDVAL "
+            statement="SELECT ROWIDVAL,MIN(UPDATETS) MIN ,MAX(UPDATETS) FROM "  + tname   + " WHERE TNAME ='UPDATING on F_BATCH' and xmltype.getclobval(information)    LIKE '%<c1>%' AND xmltype.getclobval(information) NOT  LIKE '%<c3>0</c3>%'"  +  " and updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI')  "  +"  GROUP BY ROWIDVAL order by ROWIDVAL "
             cursor.execute(statement)    		
             #results = cursor.fetchone()
             
@@ -456,7 +554,7 @@ class OracleDao(CommonOraDao.CommonOraDao):
                 ignore= ignore+ " )  updatets > TO_TIMESTAMP('"+str(startts) + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+str(endts) + "','YYYY-mm-dd\"T\"HH24:MI')  "        
         
         return ignore            
-    
+ 
     
     
     def buildTablewildcardscnunminSpecial(this,tablewildcard,tablewildcardallow,tname,startts,endts):
@@ -487,13 +585,50 @@ class OracleDao(CommonOraDao.CommonOraDao):
             if ignore!= "":
                 ignore= ignore+ " ) and  updatets > TO_TIMESTAMP('"+str(startts) + "','YYYY-mm-dd HH24:MI:SS.FF6')  and updatets < TO_TIMESTAMP('"+str(endts) + "','YYYY-mm-dd HH24:MI:SS.FF6')  )"        
         
+        return ignore    
+    
+    
+    
+    
+    def buildTablewildcardIgnoreTables(this):
+        ignore =  ""
+          
+        tablewildcardArray = ["F_BATCH","F_PROTOCOL","F_EB_EOD_ERROR","TAFJ","LOCK","OS_"]
+            
+        counter=1
+        for tabwild in tablewildcardArray:
+            if tabwild.strip().upper() != "":
+                if counter==1 :
+                    counter=counter+1
+                    ignore= " and   "
+                    ignore = ignore + "(   tname not like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+                    continue
+                ignore = ignore + " or  tname not like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+        if ignore!= "":
+            ignore= ignore+ " )  "        
+    
         return ignore      
-# logging.basicConfig(
-#     level=logging.DEBUG,
-#     format="[%(asctime)s:%(lineno)s - %(funcName)20s() ] %(message)s ",
-#     handlers=[logging.FileHandler("logfile.log"), logging.StreamHandler()],
-# )
-# logger = logging.getLogger("ReadFromDb")
-# logger.setLevel(logging.DEBUG)
-# this.logger_debug.debug(os.path.abspath(os.getcwd()))
-# oracleDao = OracleDao(logger, "newsys", "password", "localhost:1521/XEPDB1")
+    
+    
+    
+    
+    def getimptables(this, tname):
+        ignore =  ""
+        imptable = this.oracleGettablefrompgm(tname)
+        imptable =[["FBE1_LIMIT"]]
+        counter=1
+        for tabname in imptable:
+            tabwild = tabname[0]
+            if tabwild.strip().upper() != "":
+                if counter==1 :
+                    counter=counter+1
+                    ignore= " and    "
+                    ignore = ignore + " (  tname like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+                    continue
+                ignore = ignore + " or  tname like '%"+ tabwild.replace('.','_').replace('_','\_').strip().upper()+"%'   ESCAPE '\\' "
+        if ignore!= "":
+            ignore= ignore+ " )  "    
+        
+        return ignore            
+ 
+ 

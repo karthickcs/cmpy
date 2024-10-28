@@ -11,7 +11,7 @@ class XmlProcessor:
         
                 
                  
-    def getXMLData(this,scndetails,batch,realtname,ignoretable,difftableStruct,type):
+    def getXMLData(this,scndetails,batch,realtname,ignoretable,difftableStruct,type,taskid,runid,SuperArray):
         totalerr=""
         datadict={}
         datadicttemp={}
@@ -23,6 +23,8 @@ class XmlProcessor:
         for   row in scndetails:
             try: 
                 cval=row[0]+"|"+row[1]+"|"+row[2]
+                if  cval in SuperArray :
+                    continue
                 datadicttemp={}
                 
                 realTnameVal= row[0].split(" ")[2]  
@@ -205,4 +207,16 @@ class XmlProcessor:
         this.logger_info.info(totalerr)
         return datadict
 
+    # def skipifalreadyProcesssed(this,cval,taskid,runid):
+         
+    #     with open('Finaldiff_'+ str(taskid)+'_'+str(runid) +'.csv', 'r') as f:
+    #         lines = f.readlines()
+    #         cnt = 0
 
+    #         for entry in lines:
+    #             cnt=cnt+1
+    #             if cval in entry:
+    #                 this.logger_debug.debug("Row skipped::"+cval)
+    #                 return True
+    #     return False        
+                 
