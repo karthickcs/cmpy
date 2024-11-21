@@ -145,6 +145,46 @@ class OracleDao(CommonOraDao.CommonOraDao):
             if con:
                 con.close()            
 
+    def getuniquetables(this,tname,startts,endts,tablewildcard,tablewildcardallow):
+        cursor = None
+        con = None
+       
+        try:
+        
+            Mainsys=[]
+            con=oracledb.connect(
+            user=this.username,
+            password=this.password,
+            dsn=this.jdbcurl)
+                                    
+            # ignore =  this.buildTablewildcardscnunmin(tablewildcard,tablewildcardallow,tname,startts,endts)
+            
+            cursor = con.cursor()  
+            gby="  group by SUBSTR(tname, INSTR(tname,' ', 1, 2)+1) order by 2 desc"            
+            statement="SELECT SUBSTR(tname, INSTR(tname,' ', 1, 2)+1),count(*) FROM "  + tname   + " where  updatets > TO_TIMESTAMP('"+startts + "','YYYY-mm-dd\"T\"HH24:MI')  and updatets < TO_TIMESTAMP('"+endts + "','YYYY-mm-dd\"T\"HH24:MI') " +  this.buildTablewildcardIgnoreTables() + gby
+            this.logger_info.info(statement)
+            cursor.execute(statement)    		
+            
+            
+            remaining_rows = cursor.fetchall()
+            
+            if remaining_rows == None :
+                this.logger_info.info('No rows')
+                return
+            for rec in remaining_rows:
+                
+                    Mainsys.append(rec[0])
+            return  Mainsys
+            
+        except Exception:
+            this.logger_debug.debug("exception ",exc_info=1)
+        finally:
+            if cursor:
+                cursor.close()
+            if con:
+                con.close()            
+
+
     def fbatchRangeSearch(this,batch,tname,startts,endts,tablewildcard,tablewildcardallow):
         cursor = None
         con = None

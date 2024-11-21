@@ -133,6 +133,35 @@ class DplistenDao(CommonDao.CommonDao):
             this.logger_debug.debug("There is a problem with postgress+++++++", str(e))
         finally:
             this.closeConnection()
+            
+            
+            
+            
+    def updateStatuscontinue(this, taskid, runid, status):
+
+        try:
+            this.connect()
+            n=len(sys.argv)
+           
+            statement = (
+            "update DP_LISTEN_TABLE set UPDATETS=Current_timestamp,status='"
+            + str(status)
+            + "'  where  taskid='"
+            + str(taskid)
+            + "' and  runid='"
+            + str(runid)
+            + "' "
+            )
+            print(statement)   
+            this.cursor.execute(statement)
+            
+            this.connection.commit()
+            this.logger_info.info("Status updated Succesful")
+
+        except psycopg2.DatabaseError as e:
+            this.logger_debug.debug("There is a problem with postgress+++++++", str(e))
+        finally:
+            this.closeConnection()        
 
     def updaterowproceesed(this, taskid, runid, count):
 
@@ -199,7 +228,7 @@ class DplistenDao(CommonDao.CommonDao):
         try:
             this.connect()
             statement = (
-                "select * from DP_LISTEN_TABLE where status='CREATED'  and (select count(status) from DP_LISTEN_TABLE where status='INPROGRESS"+sys.argv[1]+"' ) = 0 order by insertts"
+                "select * from DP_LISTEN_TABLE where status in ('CREATED','CONTINUE')  and (select count(status) from DP_LISTEN_TABLE where status='INPROGRESS"+sys.argv[1]+"' ) = 0 order by insertts"
             )
             this.cursor.execute(statement)
             results = this.cursor.fetchone()

@@ -1,4 +1,7 @@
 import datetime
+import io
+import json
+import multiprocessing.process
 import oracledb
 import psycopg2
 import os
@@ -23,8 +26,10 @@ import IgnoreTableDao
 import MetaDataGen
 import OracleDao
 import XmlProcessor
- 
- 
+
+from IPython.display import display
+import multiprocessing 
+from multiprocessing import Manager, freeze_support 
 SuperArray=[]
 def setup_logger(logger_name, log_file, level=logging.INFO):
     l = logging.getLogger(logger_name)
@@ -56,16 +61,19 @@ oracledb.init_oracle_client(lib_dir=cd)
  
             
   
-def tableListenercontinue(txt):
+def tableListenercontinue():
    
 
     try:
+        txt=readfile("cont.txt")
         oldarr = txt.split(",")
         rowprocessed=0
         loadtime=0
         batchtime=0
         comaparetime=0
         reporttime=0 
+         
+        start = time.time()
         dplistenDaoObj = DplistenDao.DplistenDao(
         logger_info,logger_debug, "postgres", "postgres", "password", "localhost", 5432
         )
@@ -86,7 +94,7 @@ def tableListenercontinue(txt):
         columnLookUp={}
         for i in range(len(processRow)):
             columnLookUp[columns[i]]=processRow[i]
-        dplistenDaoObj.updateStatus(columnLookUp['taskid'],columnLookUp['runid'],'INPROGRESS')
+        dplistenDaoObj.updateStatuscontinue(columnLookUp['taskid'],columnLookUp['runid'],'INPROGRESS')
         logger_info.info(str(processRow))
         oracleDaosys1 = OracleDao.OracleDao(logger_info,logger_debug, columnLookUp['usernamesys1'],columnLookUp['passwordsys1'],columnLookUp['jdbcurlsys1'])
         oracleDaosys2 = OracleDao.OracleDao(logger_info,logger_debug, columnLookUp['usernamesys2'],columnLookUp['passwordsys2'],columnLookUp['jdbcurlsys2'])
@@ -94,10 +102,27 @@ def tableListenercontinue(txt):
         difftableStruct=diffTablestructObj.getTableStructure(columnLookUp['taskid'])
         ignoretable=ignoretableDaoObj.getIgnoreList(columnLookUp['taskid'])
         if columnLookUp['sys1type']  == "DB" :
+            # sys1=oracleDaosys1.readFromTriggerTableCont(columnLookUp['tablenamesys1'] ,columnLookUp['starttssys1'],columnLookUp['endtssys1'],oldarr)
+            # sys2=oracleDaosys2.readFromTriggerTableCont(columnLookUp['tablenamesys2'] ,columnLookUp['starttssys2'],columnLookUp['endtssys2'],oldarr)
+            # compareDataForBatchApproach(oracleDaosys1,oracleDaosys2,dplistenDaoObj,diffTableDaoObj,sys1,sys2,processRow,columnLookUp['rowcount'],columnLookUp['taskid'],columnLookUp['runid'],"false",columnLookUp['tablewildcard'],columnLookUp['tablewildcardallow'],realtname,ignoretable,difftableStruct)
+            countsys1=oracleDaosys1.countRows(columnLookUp['tablenamesys1'],columnLookUp['starttssys1'],columnLookUp['endtssys1'],columnLookUp['tablewildcard'],columnLookUp['tablewildcardallow'])
+            countsys2=oracleDaosys2.countRows(columnLookUp['tablenamesys2'],columnLookUp['starttssys2'],columnLookUp['endtssys2'],columnLookUp['tablewildcard'],columnLookUp['tablewildcardallow'])
+            dplistenDaoObj.updateRowCount(columnLookUp['taskid'],columnLookUp['runid'], countsys1,countsys2)
+           
             sys1=oracleDaosys1.readFromTriggerTableCont(columnLookUp['tablenamesys1'] ,columnLookUp['starttssys1'],columnLookUp['endtssys1'],oldarr)
             sys2=oracleDaosys2.readFromTriggerTableCont(columnLookUp['tablenamesys2'] ,columnLookUp['starttssys2'],columnLookUp['endtssys2'],oldarr)
-            compareDataForBatchApproach(oracleDaosys1,oracleDaosys2,dplistenDaoObj,diffTableDaoObj,sys1,sys2,processRow,columnLookUp['rowcount'],columnLookUp['taskid'],columnLookUp['runid'],"false",columnLookUp['tablewildcard'],columnLookUp['tablewildcardallow'],realtname,ignoretable,difftableStruct)
-            
+            done = time.time()
+            loadtime =int(( done - start))+1
+            start = time.time()
+            dplistenDaoObj.updateProcessTime(columnLookUp['taskid'],columnLookUp['runid'] ,loadtime,batchtime,comaparetime,reporttime)
+            if columnLookUp['tablewildcardallow'] == 'SPEED':
+                compareDataForBatchSpeedApproach(oracleDaosys1,oracleDaosys2,dplistenDaoObj,diffTableDaoObj,sys1,sys2,processRow,columnLookUp['rowcount'],columnLookUp['taskid'],columnLookUp['runid'],"false",columnLookUp['tablewildcard'],columnLookUp['tablewildcardallow'],realtname,ignoretable,difftableStruct)
+            else:
+                compareDataForBatchApproach(oracleDaosys1,oracleDaosys2,dplistenDaoObj,diffTableDaoObj,sys1,sys2,processRow,columnLookUp['rowcount'],columnLookUp['taskid'],columnLookUp['runid'],"false",columnLookUp['tablewildcard'],columnLookUp['tablewildcardallow'],realtname,ignoretable,difftableStruct)
+            done = time.time()
+            comaparetime =int(( done - start))+1
+            reporttime=1
+            dplistenDaoObj.updateProcessTime(columnLookUp['taskid'],columnLookUp['runid'] ,loadtime,batchtime,comaparetime,reporttime)
         else :
             
             logger_info.info("End")    
@@ -144,6 +169,12 @@ def tableListener():
         columnLookUp={}
         for i in range(len(processRow)):
             columnLookUp[columns[i]]=processRow[i]
+            
+        if columnLookUp['status']=='CONTINUE'   :
+            dplistenDaoObj.updateStatus(columnLookUp['taskid'],columnLookUp['runid'],'DONE'+sys.argv[1])  
+            tableListenercontinue()  
+            return
+             
             
         dplistenDaoObj.updateStatus(columnLookUp['taskid'],columnLookUp['runid'],'INPROGRESS'+sys.argv[1])    
         if columnLookUp['sys1type'] != None and columnLookUp['sys1type'] !='' and columnLookUp['sys1type'] =='FILE' :
@@ -433,9 +464,17 @@ def compareDataForClob(dplistenDaoObj:DplistenDao.DplistenDao,diffTableDaoObj:Di
         diffTableDaoObj.closeprrowConnection()   
 
                                 
-def compareDataForBatchOneCycle(dplistenDaoObj:DplistenDao.DplistenDao,diffTableDaoObj:DiffTableDao.DiffTableDao,tid,scndetssys1,scndetssys2,taskid,runid,realtname,ignoretable,difftableStruct):
+def compareDataForBatchOneCycle( tid,scndetssys1,scndetssys2,taskid,runid,realtname,ignoretable,difftableStruct):
     con = None
     try:
+        dplistenDaoObj = DplistenDao.DplistenDao(
+        logger_info,logger_debug, "postgres", "postgres", "password", "localhost", 5432
+        )
+        diffTableDaoObj = DiffTableDao.DiffTableDao(
+        logger_info,logger_debug, "postgres", "postgres", "password", "localhost", 5432
+        )
+        dplistenDaoObj.connectprrow()
+        diffTableDaoObj.connectprrow()
         logger_time.debug("start of Batch of ---->"+tid +"--->size"+str(len(scndetssys1)))
         start = datetime.datetime.now(pytz.timezone('Asia/Kolkata')) 
         # print ("start Inner Thread of ---->"+tid +"size"+str(len(scndetssys1))) 
@@ -458,16 +497,11 @@ def compareDataForBatchOneCycle(dplistenDaoObj:DplistenDao.DplistenDao,diffTable
         inthreadrunner=[]
         # con = psycopg2.connect(database="postgres", user="postgres", password="password", host="localhost", port=5432) 
      
-        for i in range(inrr):
-            t = threading.Thread(target=compareDataForOnlinethread,args=(dplistenDaoObj,diffTableDaoObj,tid+str(i),inrval,inrval+intriger, tab1, tab2, tnameConcattab1 , tnameConcattab2,tnamereversemap,taskid,runid,realtname))
+        compareDataForOnlinethread(  dplistenDaoObj,diffTableDaoObj,tid,inrval,inrval+intriger, tab1, tab2, tnameConcattab1 , tnameConcattab2,tnamereversemap,taskid,runid,realtname)
                                          
-            t.start()
-            logger_debug.debug("start Batch  Thread of "+tid +"-->"+str(i)) 
-            inthreadrunner.append(t)
-            inrval=inrval+intriger
+        
+        inrval=inrval+intriger
             
-        for threadm in inthreadrunner :
-            threadm.join()    
         # compareDataForOnlinethread(dplistenDaoObj,diffTableDaoObj,tid,inrval,intriger, tab1, tab2, tnameConcattab1 , tnameConcattab2,tnamereversemap,taskid,runid,realtname)
            
            
@@ -551,7 +585,10 @@ def compareDataForBatchApproach(oracleDaosys1,oracleDaosys2,dplistenDaoObj:Dplis
         diffTableDaoObj.connectprrow()  
         for i in range(len(sys1)):
             try:
-       
+                if counter%int(sys.argv[2]) != int(sys.argv[1]):
+                    counter=counter+1  
+                    # logger_time.info("Batch skipped:"+batch +":"+str(counter)+":App:"+ str(sys.argv[1]) + "::size:"+ str(len(scndetssys1))) 
+                    continue
                 batch=sys1[i][0]
                 
                 # if batch!= "BE1/AC.STMT.UPDATE" :
@@ -560,7 +597,7 @@ def compareDataForBatchApproach(oracleDaosys1,oracleDaosys2,dplistenDaoObj:Dplis
                 maxtime=sys1[i][2]
                 scndetssys1=oracleDaosys1.fbatchRangeSearch(batch, processRow[14],mintime,maxtime,tablewildcard,tablewildcardallow)
                 if scndetssys1 == None or len(scndetssys1) ==0:
-                    # counter=counter+1  
+                    counter=counter+1  
                     logger_info.info("oldsys Batch with zero rows ::"+batch)
                     continue;
                 totalrowss1=totalrowss1+len(scndetssys1)
@@ -575,17 +612,17 @@ def compareDataForBatchApproach(oracleDaosys1,oracleDaosys2,dplistenDaoObj:Dplis
                 scndetssys2=oracleDaosys2.fbatchRangeSearch(batchsys2, processRow[21],mintimesys2,maxtimesys2,tablewildcard,tablewildcardallow)
                 if  scndetssys2 == None :
                     logger_info.info("newsys Batch with zero rows ::"+batch)
-                    # counter=counter+1  
+                    counter=counter+1  
                     continue
                 # compareDataForBatchOneCycle(dplistenDaoObj,diffTableDaoObj,batch,scndetssys1,scndetssys2,taskid,runid,realtname,ignoretable,difftableStruct)
                 counter=counter+1
                 totalrowss2=totalrowss2+len(scndetssys2)
                  
-                if counter%int(sys.argv[2]) != int(sys.argv[1]):
-                    # logger_time.info("Batch skipped:"+batch +":"+str(counter)+":App:"+ str(sys.argv[1]) + "::size:"+ str(len(scndetssys1))) 
-                    continue
+                # if counter%int(sys.argv[2]) != int(sys.argv[1]):
+                #     # logger_time.info("Batch skipped:"+batch +":"+str(counter)+":App:"+ str(sys.argv[1]) + "::size:"+ str(len(scndetssys1))) 
+                #     continue
                 logger_time.info("Batch processed:"+batch +":"+str(counter)+":App:"+ str(sys.argv[1]) + "::size:"+ str(len(scndetssys1))) 
-                t = threading.Thread(target=compareDataForBatchOneCycle,args=(dplistenDaoObj,diffTableDaoObj,batch,scndetssys1,scndetssys2,taskid,runid,realtname,ignoretable,difftableStruct))
+                t = multiprocessing.Process(target=compareDataForBatchOneCycle,args=( batch,scndetssys1,scndetssys2,taskid,runid,realtname,ignoretable,difftableStruct,))
                 t.start()                 
                 threadrunner.append(t)
               
@@ -659,14 +696,14 @@ def compareDataForBatchSpeedApproach(oracleDaosys1,oracleDaosys2,dplistenDaoObj:
                     logger_info.info("newsys Batch with zero rows ::"+batch)
                     counter=counter+1  
                     continue
-                # compareDataForBatchOneCycle(dplistenDaoObj,diffTableDaoObj,batch,scndetssys1,scndetssys2,taskid,runid,realtname,ignoretable,difftableStruct)
+                compareDataForBatchOneCycle(dplistenDaoObj,diffTableDaoObj,batch,scndetssys1,scndetssys2,taskid,runid,realtname,ignoretable,difftableStruct)
                 counter=counter+1
                 totalrowss2=totalrowss2+len(scndetssys2)
                  
                
-                t = threading.Thread(target=compareDataForBatchOneCycle,args=(dplistenDaoObj,diffTableDaoObj,batch,scndetssys1,scndetssys2,taskid,runid,realtname,ignoretable,difftableStruct))
-                t.start()                 
-                threadrunner.append(t)
+                # t = threading.Thread(target=compareDataForBatchOneCycle,args=(dplistenDaoObj,diffTableDaoObj,batch,scndetssys1,scndetssys2,taskid,runid,realtname,ignoretable,difftableStruct))
+                # t.start()                 
+                # threadrunner.append(t)
               
                 logger_info.info("Batch processed Success ::  "+batch  + "   index of batch===>"+str(counter))
             
@@ -674,8 +711,8 @@ def compareDataForBatchSpeedApproach(oracleDaosys1,oracleDaosys2,dplistenDaoObj:
                 logger_debug.debug("exception "+ batch,exc_info=1)        
             # counter=counter+1  
         # dplistenDaoObj.updateRowCount(taskid,runid, totalrowss1,totalrowss2)          
-        for threadm in threadrunner :
-            threadm.join()    
+        # for threadm in threadrunner :
+        #     threadm.join()    
                 
         logger_info.info("Exiting Main Thread") 
         end = datetime.datetime.now(pytz.timezone('Asia/Kolkata'))
@@ -697,25 +734,8 @@ def sleepLoop():
         logger_info.info("Listening ....**********----->")
         time.sleep(10.0)
 os.system('cls')
-logger_info.info('hi')
-n = len(sys.argv)
-print("Total arguments passed:", n)
-
-# # Arguments passed
-# print("\nName of Python script:", sys.argv[0])
-
-print("\nArguments passed:", end = " ")
-for i in range(1, n):
-     print(sys.argv[i], end = " ")
-# readcont=readfile("cont.txt")
-
-# if readcont !=  "" :     
-#     inputval = input('OLd Run Exixt Press Y to Continue where you left \n , N to Proceed Normal Flow ...\n') 
-#     if inputval.upper() == "Y": 
-#         tableListenercontinue(readcont)
-sleepLoop()
-  
-
-logger_info.info('completed')
-logger_info.info('done')
  
+ 
+if __name__ == '__main__': 
+    freeze_support()
+    sleepLoop()
